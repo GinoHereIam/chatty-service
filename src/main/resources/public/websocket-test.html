@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8"/>
+    <head>
+        <title>WebSocket Test</title>
+        <link rel="stylesheet" type="text/css" href="/style.css">
+    </head>
+    <body>
+        <p>open the browser's javascript console</p>
+        <div class="field">
+            Username: <br/><label for="username_registration"></label><input id="username_registration"/><p/>
+            Display name: <br/><label for="name_registration"></label><input id="name_registration"/><p/>
+            Password: <br/><label for="password_registration"></label><input id="password_registration" type="password"/><p/>
+            <button onclick="dummy_register()">Register</button>
+        </div>
+
+        <div class="field">
+            Username: <br/><label for="username_login"></label><input id="username_login"/><p/>
+            Password: <br/><label for="password_login"></label><input id="password_login" type="password"/><p/>
+            <button onclick="dummy_login()">Login</button>
+        </div>
+    </body>
+</html>
+
+<script language="javascript" type="text/javascript">
+var socket = new WebSocket("ws://localhost:8080/ws/chatty");
+socket.onopen = function (event) {
+    var message = JSON.stringify({
+        "actionType": "USER_CONNECT",
+        "username": "",
+        "name": "",
+        "password": "",
+        "content": "",
+        "token": ""
+    });
+    console.log('open:', event);
+    socket.send(message)
+};
+socket.onclose = function (event) {
+    console.log('close:', event)
+};
+socket.onerror = function (event) {
+    console.log('error:', event)
+};
+socket.onmessage = function (event) {
+    console.log('server said:', event.data)
+};
+
+var dummy_register = function () {
+    var username = document.getElementById("username_registration").value;
+    var name = document.getElementById("name_registration").value;
+    var password = document.getElementById("password_registration").value;
+    console.log('client send: register()');
+    socket.send(JSON.stringify({
+        "actionType": "USER_REGISTER_ACCOUNT",
+        "name": name,
+        "username": username,
+        "password": password,
+        "content": "",
+        "token": ""
+    }))
+};
+
+var dummy_login = function () {
+    var username = document.getElementById("username_login").value;
+    var password = document.getElementById("password_login").value;
+    console.log('client send: login()');
+    socket.send(JSON.stringify({
+        "actionType": "USER_LOGIN_ACCOUNT",
+        "username": username,
+        "password": password,
+        "content": "",
+        // Need a user token
+        "token": ""
+    }))
+};
+</script>
