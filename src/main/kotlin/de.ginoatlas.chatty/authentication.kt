@@ -35,7 +35,7 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
 
         // Those users are the current connected one
         users.filter {
-            it.name == username
+            it.username == username
         }.forEach {
             // The user seems to be already in global list
             if (!it.token.equals(UUID.fromString("00000000-0000-0000-0000-000000000000"))) {
@@ -52,7 +52,10 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
             // TODO good place to save user credentials in database
 
             protocol.user.token = UUID.randomUUID()
-            protocol.user.name = username
+            // Set user defined properties
+            protocol.user.username = username
+            protocol.user.name = name
+            // Set server informations
             protocol.header.setAdditionalText = "[chatty-service]: ${proto.user.name} is registered!"
             protocol.responseType = ResponseType.SUCCESS
 

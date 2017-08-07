@@ -70,7 +70,7 @@ fun main(args: Array<String>) = runBlocking<Unit> {
                     }
 
                     override fun onText(message: String) {
-                        println("[$id] client sent us: $message")
+                        // println("[$id] client sent us: $message")
 
                         val stringBuilder = StringBuilder(message)
                         val cpow = parser.parse(stringBuilder) as JsonObject
