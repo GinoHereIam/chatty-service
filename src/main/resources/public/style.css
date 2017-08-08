@@ -1,7 +1,29 @@
 html, body {
     margin: 0;
-    padding: 5% 11%;
-    background-color: #455A64;
+    padding: 3% 10%;
+    background: #263238;
     color: white;
-    font-size: 1.2em;
+}
+
+.box {
+    width: auto;
+    height: auto;
+
+    margin: 0;
+    padding: 3% 5%;
+
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-around;
+
+    background-color: #455a64;
+    color: #cfd8dc;
+}
+
+#app {
+
+}
+
+#service_output {
+    font-style: italic;
 }
