@@ -22,7 +22,7 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
         // Checking for password/username or registered token!
         if (password == "" || username == "") {
             proto.responseType = ResponseType.FAILED
-            proto.header.setAdditionalText = "[chatty-service] either no password/username provided!"
+            proto.header.setAdditionalText = "[chatty-service]: either no password/username provided!"
             return proto
         }
 
@@ -41,7 +41,7 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
             if (!it.token.equals(UUID.fromString("00000000-0000-0000-0000-000000000000"))) {
                 // it's in global list + credential token already changed!
                 proto.responseType = ResponseType.FAILED
-                proto.header.setAdditionalText = "[chatty-service] ${it.name} is already registered!"
+                proto.header.setAdditionalText = "[chatty-service]: ${it.name} is already registered!"
                 return proto
             }
         }
@@ -87,7 +87,7 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
 
             prot.responseType = ResponseType.FAILED
             prot.header.setAdditionalText =
-                    "[chatty-service] Something went wrong during encrypting and saving your password.\n" +
+                    "[chatty-service]: Something went wrong during encrypting and saving your password.\n" +
                             "Please provide the stacktrace: ${e.printStackTrace()}"
             return mapOf(prot to null)
         }
