@@ -1,9 +1,8 @@
 package de.ginoatlas.chatty
-
-import de.ginoatlas.chatty.util.Ciphertext
-import de.ginoatlas.chatty.util.encryptGcm
-import de.ginoatlas.chatty.util.generateKey
 import java.util.*
+import java.security.MessageDigest
+import kotlin.experimental.and
+
 
 data class Authentication(val users: MutableList<User>, val proto: CPoW) {
     // Has to be set always!
@@ -15,6 +14,8 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
 
     var name: String = ""
         set
+
+    private var encrypted: String = ""
 
     // Register and get a credential token
     suspend fun register(): CPoW {
@@ -48,7 +49,9 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
 
         val enc = encrypt(proto)
         val protocol = enc.keys.first()
-        if (enc.values.first() != null) {
+        encrypted = enc.values.first()
+        if (encrypted != "") {
+
             // TODO good place to save user credentials in database
 
             protocol.user.token = UUID.randomUUID()
@@ -69,27 +72,51 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
     }
 
     // TODO return the login token
-    suspend fun login(): String {
-        return ""
+    suspend fun login(): CPoW {
+        val enc = encrypt(proto)
+        val protocol = enc.keys.first()
+        val _encrypted = enc.values.first()
+
+        // TODO get encrypted password from DB
+        if(_encrypted == encrypted) {
+            protocol.responseType = ResponseType.SUCCESS
+            protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.name} has been successfully logged in!"
+
+            return protocol
+        }else {
+            protocol.responseType = ResponseType.FAILED
+            protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.name} has been failed to log in!"
+
+            return protocol
+        }
     }
 
-    private suspend fun encrypt(prot: CPoW): Map<CPoW, Ciphertext?> {
+    private suspend fun encrypt(prot: CPoW): Map<CPoW, String> {
+
         try {
-            // We should move it in an extra function
-            // useful for registration and login
-            val key = generateKey(128)
-            val encrypted = encryptGcm(password.toByteArray(), key)
-            // This is the string we save
-            return mapOf(prot to encrypted)
-        } catch (e: Exception) {
-            // Let's get the stacktrace, even this should enver happen
+            val MD = MessageDigest.getInstance("SHA-512")
+            MD.update(password.toByteArray())
+
+            val byteData = MD.digest()
+
+            val sb = StringBuffer()
+            for (i in 0..byteData.size - 1) {
+                sb.append(Integer.toString((byteData[i] and 0xff.toByte()) + 0x100, 16).substring(1))
+            }
+
+            val hex = sb.toString()
+
+            return mapOf(prot to hex)
+
+        }catch(e: Exception) {
+            // Let's get the stacktrace, even this should never happen
             println(e.printStackTrace())
 
             prot.responseType = ResponseType.FAILED
             prot.header.setAdditionalText =
                     "[chatty-service]: Something went wrong during encrypting and saving your password.\n" +
                             "Please provide the stacktrace: ${e.printStackTrace()}"
-            return mapOf(prot to null)
+            return mapOf(prot to "")
         }
     }
 }
