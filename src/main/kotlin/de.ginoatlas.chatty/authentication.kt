@@ -21,9 +21,9 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
     suspend fun register(): CPoW {
 
         // Checking for password/username or registered token!
-        if (password == "" || username == "") {
+        if (password == "" || username == "" || name == "") {
             proto.responseType = ResponseType.FAILED
-            proto.header.setAdditionalText = "[chatty-service]: either no password/username provided!"
+            proto.header.setAdditionalText = "[chatty-service]: either no password/username/name provided!"
             return proto
         }
 
@@ -59,10 +59,10 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
             protocol.user.username = username
             protocol.user.name = name
             // Set server informations
-            protocol.header.setAdditionalText = "[chatty-service]: ${proto.user.name} is registered!"
+            protocol.header.setAdditionalText = "[chatty-service]: ${proto.user.username} is registered!"
             protocol.responseType = ResponseType.SUCCESS
-
             return protocol
+
         }else {
             protocol.header.setAdditionalText = "[chatty-service]: could not encrypt password."
             protocol.responseType = ResponseType.FAILED
