@@ -1,12 +1,12 @@
 {
   "name": "chatty-client",
   "version": "1.0.0",
-  "description": "A reactive chatty webclient",
+  "description": "A reactive chatty client",
   "main": "index.js",
   "author": "GinoHereIam",
   "license": "MIT",
   "dependencies": {
-    "babel-core": "^6.25.0",
+    "babel-standalone": "^6.25.0",
     "react": "^15.6.1",
     "react-dom": "^15.6.1"
   }

@@ -138,60 +138,70 @@ suspend fun parseCPOW(protocol: CPoW): JsonArray<Any?> {
                 obj(
                         "actionType" to protocol.actionType.name
                 ),
-                array(
-                        obj(
-                                "content" to protocol.message.content
-                        ),
-                        obj(
-                                "timestamp" to protocol.message.timestamp.toLocalDateTime().toString()
+                obj(
+                        "message" to array(
+                                obj(
+                                        "content" to protocol.message.content
+                                ),
+                                obj(
+                                        "timestamp" to protocol.message.timestamp.toLocalDateTime().toString()
+                                )
                         )
                 ),
-                array(
-                        obj(
-                                "additionalText" to protocol.header.additionalText
+                obj(
+                        "header" to array(
+                                obj(
+                                        "additionalText" to protocol.header.additionalText
+                                )
                         )
                 ),
                 obj(
                         "responseType" to protocol.responseType.name
                 ),
-                array(
-                        obj(
-                                "sessionID" to protocol.user.sessionID.toString()
-                        ),
-                        obj(
-                                "username" to protocol.user.username
-                        ),
-                        obj(
-                                "name" to protocol.user.name
-                        ),
-                        obj(
-                                "token" to protocol.user.token.toString()
+                obj(
+                        "user" to array(
+                                obj(
+                                        "sessionID" to protocol.user.sessionID.toString()
+                                ),
+                                obj(
+                                        "username" to protocol.user.username
+                                ),
+                                obj(
+                                        "name" to protocol.user.name
+                                ),
+                                obj(
+                                        "token" to protocol.user.token.toString()
+                                )
                         )
                 ),
-                array(
-                        // Contacts related information
-                        if (protocol.contacts.size > 0) {
-                            protocol.contacts.forEach {
-                                obj("contacts" to arrayListOf(it.name))
-                                obj("sessions" to arrayListOf(it.sessionID.toString()))
-                            }
-                        } else {
-                            obj("contacts" to array())
-                            obj("sessions" to array())
-                        }
+                obj(
+                        "contacts" to array(
+                                // Contacts related information
+                                if (protocol.contacts.size > 0) {
+                                    protocol.contacts.forEach {
+                                        obj("contacts" to arrayListOf(it.name))
+                                        obj("sessions" to arrayListOf(it.sessionID.toString()))
+                                    }
+                                } else {
+                                    obj("contacts" to array())
+                                    obj("sessions" to array())
+                                }
+                        )
                 ),
-                array(
-                        // Get each unique chat id
-                        if (protocol.chats.size > 0) {
-                            protocol.chats.forEach {
-                                // Chat related information
-                                obj("chats" to protocol.chats.size)
-                                obj("chatIDs" to arrayListOf(it.chatID.toString()))
-                            }
-                        } else {
-                            obj("chats" to 0)
-                            obj("chatIDs" to array())
-                        }
+                obj(
+                        "chats" to array(
+                                // Get each unique chat id
+                                if (protocol.chats.size > 0) {
+                                    protocol.chats.forEach {
+                                        // Chat related information
+                                        obj("chats" to protocol.chats.size)
+                                        obj("chatIDs" to arrayListOf(it.chatID.toString()))
+                                    }
+                                } else {
+                                    obj("chats" to 0)
+                                    obj("chatIDs" to array())
+                                }
+                        )
                 )
         )
     }
