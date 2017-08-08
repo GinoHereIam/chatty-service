@@ -22,15 +22,11 @@ class Login extends React.Component {
     login (event) {
         event.preventDefault();
         if( this.state.username !== "" || this.state.password !== "") {
-            console.log('client send: login()');
-
             let json = JSON.stringify({
                 "actionType": "USER_LOGIN_ACCOUNT",
                 "username": this.state.username,
                 "password": this.state.password,
                 "content": "",
-                // Need a user token
-                "token": this.state.token
             });
 
             console.log(json);
@@ -53,24 +49,6 @@ class Login extends React.Component {
                 </form>
             </div>
         )
-    }
-}
-
-function ValidateInput(props) {
-    let minimum = 8;
-    let good = 14;
-
-    if(props.password.length >= minimum && props.password.length < good) {
-        return <span style={{color: "#009688"}}>
-            Great!<br/>
-            <span style={{color: "#f44336"}}>{good - props.password.length}</span> chars left for a good one!<br/>
-        </span>
-    }else if(props.password.length >= good){
-        return <span style={{color: "#009688"}}>Perfect!<br/></span>
-    } else{
-        return <span style={{color: "#f44336"}}>
-            {minimum - props.password.length} chars left for minimum!<br/>
-        </span>
     }
 }
 
@@ -117,7 +95,6 @@ function cpowToJS(event) {
     };
 
     return CPOW
-
 }
 
 class Register extends React.Component {
@@ -126,27 +103,70 @@ class Register extends React.Component {
 
         this.state = {
             socket: props.socket,
-            output: '',
             username: '',
             name: '',
             password: ''
         };
 
-        this.onChange = this.onChange.bind(this);
+        this.validatePasswordOnChange = this.validatePasswordOnChange.bind(this);
+        this.validateUsernameOnChange = this.validateUsernameOnChange.bind(this);
         this.register = this.register.bind(this);
     }
 
-    onChange(event) {
+    validateUsernameOnChange(event) {
         this.setState({
             [event.target.name]: event.target.value
-        })
+        });
 
+        let btn = document.getElementById('submitBtn');
+        let length = event.target.value.length;
+
+        let minimum = 4;
+
+        let validate_field = document.getElementById('validate');
+
+        if (length >= minimum) {
+            btn.disabled = false;
+            validate_field.innerHTML = '<span style="color: #26a69a; font-weight: bold;"><br>Great name! ' + event.target.value + '</br></span>';
+        } else {
+            btn.disabled = true;
+            validate_field.innerHTML = '<span style="color: #f44336; font-weight: bold;"><br>Too short :( ' + event.target.value + '</br></span>';
+        }
+
+
+    }
+
+    validatePasswordOnChange(event) {
+        let value = event.target.value;
+        let length = value.length;
+        this.setState({
+            [event.target.name]: event.target.value
+        });
+
+        let validate_field = document.getElementById('validate');
+
+        let minimum = 8;
+        let good = 14;
+
+
+        let btn = document.getElementById('submitBtn');
+        if (length >= minimum && length < good) {
+            validate_field.innerHTML = '<span style="color: #26a69a; font-weight: bold;"><br>Great!</br></span>';
+            if(this.state.username.length !== 0 || this.state.name.length !== 0) {
+                btn.disabled = false;
+            }
+        } else if (length >= good) {
+            validate_field.innerHTML = '<span style="color: #26a69a; font-weight: bold;"><br>Perfect!</br></span>';
+        } else {
+            btn.disabled = true;
+            validate_field.innerHTML = '<span style="color: #f44336; font-weight: bold;"><br>Too weak :(</br></span>';
+        }
     }
 
     register (event) {
         event.preventDefault();
-        if( this.state.username !== "" || this.state.name !== "" || this.state.password !== "") {
-            console.log('client send: register()');
+        console.log("Name: " + this.state.name);
+        if( this.state.username.length !== 0 || this.state.name.length !== 0 || this.state.password.length !== 0) {
             this.state.socket.send(JSON.stringify({
                 "actionType": "USER_REGISTER_ACCOUNT",
                 "name": this.state.name,
@@ -155,6 +175,8 @@ class Register extends React.Component {
                 "content": "",
                 "token": ""
             }));
+        }else {
+            return null
         }
 
     };
@@ -165,13 +187,13 @@ class Register extends React.Component {
                 <h1>Register</h1>
                 <form onSubmit={this.register}>
                     <label>Username</label><br/>
-                    <input name="username" onChange={this.onChange} value={this.state.username}/><p/>
+                    <input name="username" onChange={this.validateUsernameOnChange} value={this.state.username}/><p/>
                     <label>Display name</label><br/>
-                    <input name="name" onChange={this.onChange} value={this.state.name}/><p/>
+                    <input name="name" onChange={this.validateUsernameOnChange} value={this.state.name}/><p/>
                     <label>Password</label><br/>
-                    <input name="password" onChange={this.onChange} value={this.state.password} type="password"/><p/>
-                    <ValidateInput password={this.state.password}/><p/>
-                    <input type="submit" value="Submit" />
+                    <input name="password" onChange={this.validatePasswordOnChange} value={this.state.password} type="password"/><p/>
+                    <span id="validate"/><br/>
+                    <input type="submit" value="Submit" id="submitBtn" disabled="true"/>
                 </form>
             </div>
         )
