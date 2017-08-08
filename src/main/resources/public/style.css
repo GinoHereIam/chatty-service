@@ -1,16 +1,20 @@
 html, body {
-    margin: 0;
-    padding: 3% 10%;
+    margin: 0 5%;
+    padding: 3% 0;
+
+    width: auto;
+
     background: #263238;
     color: white;
+    font-size: 1em;
 }
 
 .box {
-    width: auto;
-    height: auto;
-
     margin: 0;
-    padding: 3% 5%;
+    padding: 3% 2%;
+
+    width: auto;
+    height: 100%;
 
     display: flex;
     flex-flow: row wrap;
@@ -21,7 +25,8 @@ html, body {
 }
 
 #app {
-
+    margin: 0;
+    padding: 0 3%;
 }
 
 #service_output {

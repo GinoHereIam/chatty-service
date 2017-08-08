@@ -184,41 +184,41 @@ class Authentication extends React.Component {
     }
 
     render() {
-            let socket = new WebSocket("ws://localhost:8080/ws/chatty");
-            let token = "";
+        let socket = new ReconnectingWebSocket("ws://localhost:8080/ws/chatty");
+        let token = "";
 
-            socket.onopen = function (event) {
-                let message = JSON.stringify({
-                    "actionType": "USER_CONNECT",
-                    "username": "",
-                    "name": "",
-                    "password": "",
-                    "content": "",
-                    "token": ""
-                });
-                console.log('open:', event);
-                socket.send(message)
-            };
-            socket.onclose = function (event) {
-                console.log('close:', event)
-            };
+        socket.onopen = function (event) {
+            let message = JSON.stringify({
+                "actionType": "USER_CONNECT",
+                "username": "",
+                "name": "",
+                "password": "",
+                "content": "",
+                "token": ""
+            });
+            console.log('open:', event);
+            socket.send(message)
+        };
+        socket.onclose = function (event) {
+            console.log('close:', event);
+            document.getElementById('service_output').innerHTML += "[chatty-client]: Connection is closed by service." + "<br/>";
+        };
 
-            socket.onerror = function (event) {
-                console.log('error:', event)
-            };
-            socket.onmessage = function (event) {
-                // TODO parse this JSON structure and set states
-                console.log('server said:', event.data);
-                let data = cpowToJS(event.data);
+        socket.onerror = function (event) {
+            console.log('error:', event)
+        };
+        socket.onmessage = function (event) {
+            // TODO parse this JSON structure and set states
+            console.log('server said:', event.data);
+            let data = cpowToJS(event.data);
 
-                token = data.user.token;
-                let additionalText = data.header.additionalText;
+            token = data.user.token;
+            let additionalText = data.header.additionalText;
 
-                if(additionalText !== undefined) {
-                    document.getElementById('service_output').innerHTML += additionalText + "<br/>";
-                }
-            };
-
+            if(additionalText !== undefined) {
+                document.getElementById('service_output').innerHTML += additionalText + "<br/>";
+            }
+        };
         return (
             <div>
                 <Login socket={socket} token={token}/>
