@@ -85,7 +85,7 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
             return protocol
         }else {
             protocol.responseType = ResponseType.FAILED
-            protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.name} has been failed to log in!"
+            protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.name} has been failed to log in! Wrong password?"
 
             return protocol
         }
