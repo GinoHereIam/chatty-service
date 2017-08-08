@@ -118,9 +118,9 @@ fun main(args: Array<String>) = runBlocking<Unit> {
                                 ActionType.USER_DISCONNECT -> {
                                     val asyncDisconnect = launch(CommonPool) {
                                         // TODO Make user shown online
-                                        val srv_message = "User ${protocol.user.name} went offline!"
-                                        // session.remote.sendString(srv_message)
-                                        println(srv_message)
+                                        protocol.header.setAdditionalText = "You are offline now!"
+                                        val response = parseCPOW(protocol).toJsonString()
+                                        session.remote.sendString(response)
                                         session.close()
                                     }
                                 }
