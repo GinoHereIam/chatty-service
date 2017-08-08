@@ -56,6 +56,7 @@ fun main(args: Array<String>) = runBlocking<Unit> {
                         But there are setter/getter for lateinit
                         */
                 )
+
                 val auth = Authentication(users, protocol)
 
                 println("Started websocket connection ${DateTime.now().toLocalDateTime()}")
@@ -175,13 +176,13 @@ fun main(args: Array<String>) = runBlocking<Unit> {
                                     val asyncAuth = launch(CommonPool) {
 
                                         // Set credentials
-                                        auth.username = cpow["name"] as String
+                                        auth.username = cpow["username"] as String
                                         auth.password = cpow["password"] as String
-                                        val token: String = auth.login()
+                                        protocol = auth.login()
 
-                                        if (token != "") {
-                                            // Create a valid API json from CPoW with token
-                                            session.remote.sendString("Your token is: $token")
+                                        if (protocol.user.token.toString() != "") {
+                                            val response = parseCPOW(protocol).toJsonString()
+                                            session.remote.sendString(response)
                                         }
                                     }
                                 }
