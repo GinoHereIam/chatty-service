@@ -132,8 +132,6 @@ class Register extends React.Component {
             btn.disabled = true;
             validate_field.innerHTML = '<span style="color: #f44336; font-weight: bold;"><br>Too short :( ' + event.target.value + '</br></span>';
         }
-
-
     }
 
     validatePasswordOnChange(event) {
@@ -165,7 +163,6 @@ class Register extends React.Component {
 
     register (event) {
         event.preventDefault();
-        console.log("Name: " + this.state.name);
         if( this.state.username.length !== 0 || this.state.name.length !== 0 || this.state.password.length !== 0) {
             this.state.socket.send(JSON.stringify({
                 "actionType": "USER_REGISTER_ACCOUNT",
@@ -230,7 +227,6 @@ class Authentication extends React.Component {
             console.log('error:', event)
         };
         socket.onmessage = function (event) {
-            // TODO parse this JSON structure and set states
             console.log('server said:', event.data);
             let data = cpowToJS(event.data);
 

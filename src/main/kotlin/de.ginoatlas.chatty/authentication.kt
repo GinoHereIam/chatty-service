@@ -27,6 +27,19 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
             return proto
         }
 
+        // Check password length
+        if(password.length < 8) {
+            proto.responseType = ResponseType.FAILED
+            proto.header.setAdditionalText = "[chatty-service]: Your password needs to be at least 8 chars long!"
+            return proto
+        }
+
+        if(username.length < 4 || name.length < 4) {
+            proto.responseType = ResponseType.FAILED
+            proto.header.setAdditionalText = "[chatty-service]: Your username/name needs to be at least 4 chars long!"
+            return proto
+        }
+
         /*
          * FIXME even it is only for runtime! Actually data should come from database
          * 1. user is already in global user list
