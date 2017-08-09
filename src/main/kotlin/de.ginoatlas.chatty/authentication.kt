@@ -92,12 +92,12 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
         // TODO get encrypted password from DB
         if(_encrypted == encrypted) {
             protocol.responseType = ResponseType.SUCCESS
-            protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.name} has been successfully logged in!"
+            protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.username} has been successfully logged in!"
 
             return protocol
         }else {
             protocol.responseType = ResponseType.FAILED
-            protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.name} has been failed to log in! Wrong password?"
+            protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.username} has been failed to log in! Wrong password?"
 
             return protocol
         }
