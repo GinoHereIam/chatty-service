@@ -23,7 +23,8 @@ import java.util.*
 data class User(
         // Add more user properties here
         val conn: Session,
-        val sessionID: UUID
+        val sessionID: UUID,
+        val minimumLength: Int = 4
 ) {
     // Unique user name | it's for login
     var username: String = ""
@@ -45,6 +46,10 @@ data class User(
         get
         set
 }
+
+data class Password(
+        val minimumLength: Int = 8
+)
 
 enum class ResponseType {
     SUCCESS,
@@ -92,6 +97,7 @@ data class CPoW(
         val action: ActionType,
         val response: ResponseType,
         val participant: User,
+        val password: Password,
         val header: Header,
         // For verification compatibility?
         val version: String = "v1") {
@@ -171,6 +177,9 @@ suspend fun parseCPOW(protocol: CPoW): JsonArray<Any?> {
                                 ),
                                 obj(
                                         "token" to protocol.user.token.toString()
+                                ),
+                                obj(
+                                        "minimumLength" to protocol.user.minimumLength
                                 )
                         )
                 ),
@@ -201,6 +210,11 @@ suspend fun parseCPOW(protocol: CPoW): JsonArray<Any?> {
                                     obj("chats" to 0)
                                     obj("chatIDs" to array())
                                 }
+                        )
+                ),
+                obj(
+                        "password" to array(
+                            obj("minimumLength" to protocol.password.minimumLength)
                         )
                 )
         )
