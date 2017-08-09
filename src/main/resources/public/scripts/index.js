@@ -4,7 +4,6 @@ class Login extends React.Component {
         super(props);
         this.state = {
             socket: props.socket,
-            token: props.token,
             username: '',
             password: ''
         };
@@ -16,7 +15,6 @@ class Login extends React.Component {
         this.setState({
             [event.target.name]: event.target.value
         })
-
     }
 
     login (event) {
@@ -31,8 +29,6 @@ class Login extends React.Component {
 
             console.log(json);
             this.state.socket.send(json)
-
-
         }
     };
 
@@ -75,13 +71,18 @@ function cpowToJS(event) {
         sessionID: cpow[5].user[0].sessionID,
         username: cpow[5].user[1].username,
         name: cpow[5].user[2].name,
-        token: cpow[5].user[3].token
+        token: cpow[5].user[3].token,
+        minimumLength: cpow[5].user[4].minimumLength
     };
 
     // CPOW[6] doesn't matter for now
 
     const chats = {
         chatIDs: cpow[7].chats[0].chatIDs
+    };
+
+    const password = {
+        minimumLength: cpow[8].password[0].minimumLength
     };
 
     let CPOW = {
@@ -91,7 +92,8 @@ function cpowToJS(event) {
         header: header,
         responseType: responseType,
         user: user,
-        chats: chats
+        chats: chats,
+        password: password
     };
 
     return CPOW
@@ -105,13 +107,33 @@ class Register extends React.Component {
             socket: props.socket,
             username: '',
             name: '',
-            password: ''
+            password: '',
+            minimumLengthPassword: 0,
+            minimumLengthNames: 0
         };
 
         this.validatePasswordOnChange = this.validatePasswordOnChange.bind(this);
         this.validateUsernameOnChange = this.validateUsernameOnChange.bind(this);
         this.register = this.register.bind(this);
     }
+
+    componentDidMount() {
+        // Actual this to access this.setState({})
+        let self = this;
+
+        this.state.socket.onmessage = function(event) {
+            let cpow = cpowToJS(event.data);
+
+            self.setState({
+                minimumLengthPassword: cpow.password.minimumLength,
+                minimumLengthNames: cpow.user.minimumLength
+            });
+
+            let service_output = cpow.header.additionalText;
+            document.getElementById('service_output').innerHTML += service_output + "<br/>";
+        };
+    }
+
 
     validateUsernameOnChange(event) {
         this.setState({
@@ -121,16 +143,21 @@ class Register extends React.Component {
         let btn = document.getElementById('submitBtn');
         let length = event.target.value.length;
 
-        let minimum = 4;
-
         let validate_field = document.getElementById('validate');
 
-        if (length >= minimum) {
+        if (length >= this.state.minimumLengthNames) {
+
+            // Validation output
+            validate_field.innerHTML = '<span style="color: #26a69a; font-weight: bold;">' +
+                '<br>Great name! ' + event.target.value + '</br></span>';
             btn.disabled = false;
-            validate_field.innerHTML = '<span style="color: #26a69a; font-weight: bold;"><br>Great name! ' + event.target.value + '</br></span>';
+
         } else {
+
+            // Validation output
+            validate_field.innerHTML = '<span style="color: #f44336; font-weight: bold;">' +
+                '<br>Too short :( ' + event.target.value + '</br></span>';
             btn.disabled = true;
-            validate_field.innerHTML = '<span style="color: #f44336; font-weight: bold;"><br>Too short :( ' + event.target.value + '</br></span>';
         }
     }
 
@@ -143,21 +170,34 @@ class Register extends React.Component {
 
         let validate_field = document.getElementById('validate');
 
-        let minimum = 8;
         let good = 14;
+        let minimum = this.state.minimumLengthPassword;
+
+        console.log("Minimum: " + minimum);
 
 
         let btn = document.getElementById('submitBtn');
         if (length >= minimum && length < good) {
-            validate_field.innerHTML = '<span style="color: #26a69a; font-weight: bold;"><br>Great!</br></span>';
+
+            // Validation output
+            validate_field.innerHTML = '<span style="color: #26a69a; font-weight: bold;">' +
+                '<br>Good password! ' + String(good - length) + ' chars left for perfect one!</br></span>';
+
             if(this.state.username.length !== 0 || this.state.name.length !== 0) {
                 btn.disabled = false;
             }
+
         } else if (length >= good) {
+
+            // Validation output
             validate_field.innerHTML = '<span style="color: #26a69a; font-weight: bold;"><br>Perfect!</br></span>';
+
         } else {
+
+            // Validation output
+            validate_field.innerHTML = '<span style="color: #f44336; font-weight: bold;">' +
+                '<br>Too weak :( ' + String(minimum - length) + '</br></span>';
             btn.disabled = true;
-            validate_field.innerHTML = '<span style="color: #f44336; font-weight: bold;"><br>Too weak :(</br></span>';
         }
     }
 
@@ -203,8 +243,8 @@ class Authentication extends React.Component {
     }
 
     render() {
+
         let socket = new ReconnectingWebSocket("ws://localhost:8080/ws/chatty");
-        let token = "";
 
         socket.onopen = function (event) {
             let message = JSON.stringify({
@@ -218,6 +258,7 @@ class Authentication extends React.Component {
             console.log('open:', event);
             socket.send(message)
         };
+
         socket.onclose = function (event) {
             console.log('close:', event);
             document.getElementById('service_output').innerHTML += "[chatty-client]: Connection is closed by service." + "<br/>";
@@ -226,20 +267,10 @@ class Authentication extends React.Component {
         socket.onerror = function (event) {
             console.log('error:', event)
         };
-        socket.onmessage = function (event) {
-            console.log('server said:', event.data);
-            let data = cpowToJS(event.data);
 
-            token = data.user.token;
-            let additionalText = data.header.additionalText;
-
-            if(additionalText !== undefined) {
-                document.getElementById('service_output').innerHTML += additionalText + "<br/>";
-            }
-        };
         return (
             <div>
-                <Login socket={socket} token={token}/>
+                <Login socket={socket}/>
                 <Register socket={socket}/>
             </div>
         );

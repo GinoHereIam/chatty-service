@@ -35,6 +35,7 @@ fun main(args: Array<String>) = runBlocking<Unit> {
                 // Upon each websocket connection at this endpoint, generate a random id for it
                 val id = java.util.UUID.randomUUID()
 
+                val password: Password = Password()
                 val header: Header = Header()
                 val action: ActionType = ActionType.NONE
                 val response: ResponseType = ResponseType.NONE
@@ -43,6 +44,8 @@ fun main(args: Array<String>) = runBlocking<Unit> {
                 var protocol: CPoW = CPoW(
                         // Each user is create by first connection
                         participant = user,
+                        // Set password attributes here
+                        password = password,
                         // There is always a basic header with no information
                         header = header,
                         // Default action = None

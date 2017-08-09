@@ -28,15 +28,15 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
         }
 
         // Check password length
-        if(password.length < 8) {
+        if(password.length < proto.password.minimumLength) {
             proto.responseType = ResponseType.FAILED
-            proto.header.setAdditionalText = "[chatty-service]: Your password needs to be at least 8 chars long!"
+            proto.header.setAdditionalText = "[chatty-service]: Your password needs to be at least ${proto.password.minimumLength} chars long!"
             return proto
         }
 
-        if(username.length < 4 || name.length < 4) {
+        if(username.length < proto.user.minimumLength || name.length < proto.user.minimumLength ) {
             proto.responseType = ResponseType.FAILED
-            proto.header.setAdditionalText = "[chatty-service]: Your username/name needs to be at least 4 chars long!"
+            proto.header.setAdditionalText = "[chatty-service]: Your username/name needs to be at least ${proto.user.minimumLength} chars long!"
             return proto
         }
 
@@ -66,7 +66,6 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
         if (encrypted != "") {
 
             // TODO good place to save user credentials in database
-
             protocol.user.token = UUID.randomUUID()
             // Set user defined properties
             protocol.user.username = username
