@@ -108,8 +108,7 @@ class Register extends React.Component {
             username: '',
             name: '',
             password: '',
-            minimumLengthPassword: 0,
-            minimumLengthNames: 0
+            cpow: null
         };
 
         this.validatePasswordOnChange = this.validatePasswordOnChange.bind(this);
@@ -125,8 +124,7 @@ class Register extends React.Component {
             let cpow = cpowToJS(event.data);
 
             self.setState({
-                minimumLengthPassword: cpow.password.minimumLength,
-                minimumLengthNames: cpow.user.minimumLength
+                cpow: cpow
             });
 
             let service_output = cpow.header.additionalText;
@@ -145,7 +143,7 @@ class Register extends React.Component {
 
         let validate_field = document.getElementById('validate');
 
-        if (length >= this.state.minimumLengthNames) {
+        if (length >= this.state.cpow.user.minimumLength) {
 
             // Validation output
             validate_field.innerHTML = '<span style="color: #26a69a; font-weight: bold;">' +
@@ -171,9 +169,7 @@ class Register extends React.Component {
         let validate_field = document.getElementById('validate');
 
         let good = 14;
-        let minimum = this.state.minimumLengthPassword;
-
-        console.log("Minimum: " + minimum);
+        let minimum = this.state.cpow.password.minimumLength;
 
 
         let btn = document.getElementById('submitBtn');
@@ -190,13 +186,13 @@ class Register extends React.Component {
         } else if (length >= good) {
 
             // Validation output
-            validate_field.innerHTML = '<span style="color: #26a69a; font-weight: bold;"><br>Perfect!</br></span>';
+            validate_field.innerHTML = '<span style="color: #26a69a; font-weight: bold;"><br>Perfect one!</br></span>';
 
         } else {
 
             // Validation output
             validate_field.innerHTML = '<span style="color: #f44336; font-weight: bold;">' +
-                '<br>Too weak :( ' + String(minimum - length) + '</br></span>';
+                '<br>Too weak :( ' + String(minimum - length) + ' left!</br></span>';
             btn.disabled = true;
         }
     }
