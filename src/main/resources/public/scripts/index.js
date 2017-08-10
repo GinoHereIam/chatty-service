@@ -1,54 +1,5 @@
-// Chatty-client components
-class Login extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            socket: props.socket,
-            username: '',
-            password: ''
-        };
-        this.onChange = this.onChange.bind(this);
-        this.login = this.login.bind(this)
-    }
-
-    onChange(event) {
-        this.setState({
-            [event.target.name]: event.target.value
-        })
-    }
-
-    login (event) {
-        event.preventDefault();
-        if( this.state.username !== "" || this.state.password !== "") {
-            let json = JSON.stringify({
-                "actionType": "USER_LOGIN_ACCOUNT",
-                "username": this.state.username,
-                "password": this.state.password,
-                "content": "",
-            });
-
-            console.log(json);
-            this.state.socket.send(json)
-        }
-    };
-
-    render() {
-        return (
-            <div>
-                <h1>Login</h1>
-                <form onSubmit={this.login}>
-                    <label>Username</label><br/>
-                    <input name="username" onChange={this.onChange} value={this.state.username}/><p/>
-                    <label>Password</label><br/>
-                    <input name="password" onChange={this.onChange} value={this.state.password} type="password"/><p/>
-                    <input type="submit" value="Submit" />
-                </form>
-            </div>
-        )
-    }
-}
-
-function cpowToJS(event) {
+// Functions
+function parseCPOW(event) {
     // Expect server event data
     let cpow = JSON.parse(event);
 
@@ -99,6 +50,56 @@ function cpowToJS(event) {
     return CPOW
 }
 
+// Chatty-client components
+class Login extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            socket: props.socket,
+            username: '',
+            password: ''
+        };
+        this.onChange = this.onChange.bind(this);
+        this.login = this.login.bind(this)
+    }
+
+    onChange(event) {
+        this.setState({
+            [event.target.name]: event.target.value
+        })
+    }
+
+    login (event) {
+        event.preventDefault();
+        if( this.state.username !== "" || this.state.password !== "") {
+            let json = JSON.stringify({
+                "actionType": "USER_LOGIN_ACCOUNT",
+                "username": this.state.username,
+                "password": this.state.password,
+                "content": "",
+            });
+
+            console.log(json);
+            this.state.socket.send(json)
+        }
+    };
+
+    render() {
+        return (
+            <div>
+                <h1>Login</h1>
+                <form onSubmit={this.login}>
+                    <label>Username:</label><br/>
+                    <input name="username" onChange={this.onChange} value={this.state.username}/><p/>
+                    <label>Password:</label><br/>
+                    <input name="password" onChange={this.onChange} value={this.state.password} type="password"/><p/>
+                    <input type="submit" value="Submit" />
+                </form>
+            </div>
+        )
+    }
+}
+
 class Register extends React.Component {
     constructor(props) {
         super(props);
@@ -121,7 +122,7 @@ class Register extends React.Component {
         let self = this;
 
         this.state.socket.onmessage = function(event) {
-            let cpow = cpowToJS(event.data);
+            let cpow = parseCPOW(event.data);
 
             self.setState({
                 cpow: cpow
@@ -179,6 +180,8 @@ class Register extends React.Component {
             validate_field.innerHTML = '<span style="color: #26a69a; font-weight: bold;">' +
                 '<br>Good password! ' + String(good - length) + ' chars left for perfect one!</br></span>';
 
+            validate_field.innerHTML = <span style="{'color': '#26a69a', 'font-weight: bold'}">Good password! {good - length} chars left for perfect one!</span>;
+
             if(this.state.username.length !== 0 || this.state.name.length !== 0) {
                 btn.disabled = false;
             }
@@ -219,11 +222,11 @@ class Register extends React.Component {
             <div>
                 <h1>Register</h1>
                 <form onSubmit={this.register}>
-                    <label>Username</label><br/>
+                    <label>Username:</label><br/>
                     <input name="username" onChange={this.validateUsernameOnChange} value={this.state.username}/><p/>
-                    <label>Display name</label><br/>
+                    <label>Display name:</label><br/>
                     <input name="name" onChange={this.validateUsernameOnChange} value={this.state.name}/><p/>
-                    <label>Password</label><br/>
+                    <label>Password:</label><br/>
                     <input name="password" onChange={this.validatePasswordOnChange} value={this.state.password} type="password"/><p/>
                     <span id="validate"/><br/>
                     <input type="submit" value="Submit" id="submitBtn" disabled="true"/>
