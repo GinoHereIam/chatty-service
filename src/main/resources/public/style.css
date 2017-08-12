@@ -1,6 +1,9 @@
 html, body {
-    margin: 5%;
+    margin: 2% 5%;
     padding: 0;
+
+    max-height: 100%;
+    max-width: 100%;
 
     background: #263238;
     color: white;
@@ -8,7 +11,7 @@ html, body {
 }
 
 .box {
-    padding: 1% .5%;
+    padding: 2% .5%;
 
     display: flex;
     flex-flow: row wrap;
@@ -20,13 +23,12 @@ html, body {
 
 #app {
     padding: 0 1.5%;
-
     width: 10%;
-    height: 100%;
 }
 
 #service_output {
     padding: 1%;
+    width: 50%;
 
     background: #263238;
     font-style: italic;

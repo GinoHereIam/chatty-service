@@ -117,6 +117,10 @@ class Register extends React.Component {
         this.register = this.register.bind(this);
     }
 
+    componentWillReceiveProps(nextProps) {
+        this.setState({ socket: nextProps.socket });
+    }
+
     componentDidMount() {
         // Actual this to access this.setState({})
         let self = this;
@@ -135,14 +139,14 @@ class Register extends React.Component {
 
 
     validateUsernameOnChange(event) {
-        this.setState({
-            [event.target.name]: event.target.value
-        });
-
         let btn = document.getElementById('submitBtn');
         let length = event.target.value.length;
 
         let validate_field = document.getElementById('validate');
+
+        this.setState({
+            [event.target.name]: event.target.value
+        });
 
         if (length >= this.state.cpow.user.minimumLength) {
 
@@ -163,13 +167,14 @@ class Register extends React.Component {
     validatePasswordOnChange(event) {
         let value = event.target.value;
         let length = value.length;
+
         this.setState({
-            [event.target.name]: event.target.value
+            [event.target.name]: value
         });
 
         let validate_field = document.getElementById('validate');
 
-        let good = 14;
+        let good = 12;
         let minimum = this.state.cpow.password.minimumLength;
 
 
@@ -180,7 +185,7 @@ class Register extends React.Component {
             validate_field.innerHTML = '<span style="color: #26a69a; font-weight: bold;">' +
                 '<br>Good password! ' + String(good - length) + ' chars left for perfect one!</br></span>';
 
-            validate_field.innerHTML = <span style="{'color': '#26a69a', 'font-weight: bold'}">Good password! {good - length} chars left for perfect one!</span>;
+            validate_field.innerHTML = '<span style="color: #26a69a; font-weight: bold;">Good password! ' +  String(good - length) + ' chars left for perfect one!</span>';
 
             if(this.state.username.length !== 0 || this.state.name.length !== 0) {
                 btn.disabled = false;
@@ -202,6 +207,7 @@ class Register extends React.Component {
 
     register (event) {
         event.preventDefault();
+        console.log(this.state);
         if( this.state.username.length !== 0 || this.state.name.length !== 0 || this.state.password.length !== 0) {
             this.state.socket.send(JSON.stringify({
                 "actionType": "USER_REGISTER_ACCOUNT",
@@ -214,7 +220,6 @@ class Register extends React.Component {
         }else {
             return null
         }
-
     };
 
     render() {
@@ -228,7 +233,7 @@ class Register extends React.Component {
                     <input name="name" onChange={this.validateUsernameOnChange} value={this.state.name}/><p/>
                     <label>Password:</label><br/>
                     <input name="password" onChange={this.validatePasswordOnChange} value={this.state.password} type="password"/><p/>
-                    <span id="validate"/><br/>
+                    <span id="validate"/><p/>
                     <input type="submit" value="Submit" id="submitBtn" disabled="true"/>
                 </form>
             </div>
@@ -236,16 +241,27 @@ class Register extends React.Component {
     }
 }
 
-class Authentication extends React.Component {
+class Auth extends React.Component {
     constructor(props) {
         super(props);
+
+        this.state = {
+            socket: new ReconnectingWebSocket(props.address)
+
+        };
+
+        this.handleChange = this.handleChange.bind(this);
     }
 
-    render() {
+    shouldComponentUpdate() {
+        return true;
+    }
 
-        let socket = new ReconnectingWebSocket("ws://localhost:8080/ws/chatty");
+    componentWillMount() {
+        // Actual this to access this.setState({})
+        let self = this;
 
-        socket.onopen = function (event) {
+        this.state.socket.onopen = function (event) {
             let message = JSON.stringify({
                 "actionType": "USER_CONNECT",
                 "username": "",
@@ -254,29 +270,47 @@ class Authentication extends React.Component {
                 "content": "",
                 "token": ""
             });
-            console.log('open:', event);
-            socket.send(message)
+            // console.log('open:', event);
+            self.state.socket.send(message)
         };
 
-        socket.onclose = function (event) {
-            console.log('close:', event);
+        this.state.socket.onclose = function () {
             document.getElementById('service_output').innerHTML += "[chatty-client]: Connection is closed by service." + "<br/>";
         };
 
-        socket.onerror = function (event) {
-            console.log('error:', event)
-        };
+        this.state.socket.onmessage = function(event) {
+            let cpow = parseCPOW(event.data);
 
+            self.setState({
+                cpow: cpow
+            });
+
+            let service_output = cpow.header.additionalText;
+            document.getElementById('service_output').innerHTML += service_output + "<br/>";
+        };
+    }
+
+    handleChange = function(event) {
+        event.preventDefault();
+
+        let address = document.getElementById('ws').value;
+        document.getElementById('service_output').innerHTML += "[chatty-client]: Create new service connection." + "<br/>";
+
+        this.state.socket.close();
+        document.getElementById('service_output').innerHTML += "[chatty-client]: Closed default connection" + "<br/>";
+
+        let socket = ReconnectingWebSocket(address);
+        this.setState({
+            socket: socket
+        })
+    };
+
+    render() {
         return (
             <div>
-                <Login socket={socket}/>
-                <Register socket={socket}/>
+                <Login socket={this.state.socket} />
+                <Register socket={this.state.socket} />
             </div>
         );
     }
 }
-
-ReactDOM.render(
-    <Authentication/>,
-    document.getElementById('app')
-);

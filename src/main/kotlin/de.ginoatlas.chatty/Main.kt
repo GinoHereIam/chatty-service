@@ -28,10 +28,10 @@ fun main(args: Array<String>) = runBlocking<Unit> {
         })
 
         // This endpoint will open a websocket connection that echos back any text the client sends it.
-        get("/ws/chatty", fun(): Handler = {
+        get("/chatty", fun(): Handler = {
             // Current limitation: The first argument to Response.websocket() must be a static url path.
             // It does *not* accept route patterns like "/ws/<num>". (#willfix)
-            Response.websocket("/ws/chatty", fun(_: Request, session: Session): WebSocketHandler {
+            Response.websocket("/chatty", fun(_: Request, session: Session): WebSocketHandler {
                 // Upon each websocket connection at this endpoint, generate a random id for it
                 val id = java.util.UUID.randomUUID()
 
@@ -54,10 +54,6 @@ fun main(args: Array<String>) = runBlocking<Unit> {
                         // Default response = None
                         // Needed to overwritten on each response
                         response = response
-                        /*
-                        Basically there is no message, chat or any contact yet
-                        But there are setter/getter for lateinit
-                        */
                 )
 
                 val auth = Authentication(users, protocol)
