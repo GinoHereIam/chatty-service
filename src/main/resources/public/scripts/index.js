@@ -149,7 +149,7 @@ class Register extends React.Component {
         if (length >= this.state.cpow.user.minimumLength) {
 
             // Validation output
-            validate_field.innerHTML = '<span style="color: #26a69a; font-weight: bold;">' +
+            validate_field.innerHTML = '<span style="color: #4caf50; font-weight: bold;">' +
                 '<br>Great name! ' + event.target.value + '</br></span>';
             btn.disabled = false;
 
@@ -180,10 +180,8 @@ class Register extends React.Component {
         if (length >= minimum && length < good) {
 
             // Validation output
-            validate_field.innerHTML = '<span style="color: #26a69a; font-weight: bold;">' +
+            validate_field.innerHTML = '<span style="color: #4caf50; font-weight: bold;">' +
                 '<br>Good password! ' + String(good - length) + ' chars left for perfect one!</br></span>';
-
-            validate_field.innerHTML = '<span style="color: #26a69a; font-weight: bold;">Good password! ' +  String(good - length) + ' chars left for perfect one!</span>';
 
             if(this.state.username.length !== 0 || this.state.name.length !== 0) {
                 btn.disabled = false;
@@ -192,7 +190,7 @@ class Register extends React.Component {
         } else if (length >= good) {
 
             // Validation output
-            validate_field.innerHTML = '<span style="color: #26a69a; font-weight: bold;"><br>Perfect one!</br></span>';
+            validate_field.innerHTML = '<span style="color: #4caf50; font-weight: bold;"><br>Perfect one!</br></span>';
 
         } else {
 

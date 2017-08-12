@@ -14,7 +14,9 @@
     <script type="text/babel">
         let onAddWS = function() {
             // Get service first
-            let address = document.getElementById('ws').value;
+            let address = document.getElementById('ws_input').value;
+            document.getElementById('service_output').style.display = "block";
+
             ReactDOM.render(
                 <Auth address={address}/>,
                 document.getElementById('app')
@@ -23,7 +25,7 @@
 
         let checkInput = function() {
             // Get service first
-            let address = document.getElementById('ws').value;
+            let address = document.getElementById('ws_input').value;
             // Check for valid input
             let btn = document.getElementById('addServiceBtn');
             btn.disabled = address === '';
@@ -31,11 +33,11 @@
 
     </script>
         <div class="box">
-            <div>
+            <div id="ws">
                 <h1>Enter service</h1>
-                <label for="ws">Service address:</label><br/>
-                <input id="ws" onchange="checkInput()"/><p/>
-                <button onclick="onAddWS();" id="addServiceBtn" disabled>Enter</button>
+                <label for="ws_input">Service address:</label><br/>
+                <input id="ws_input" onchange="checkInput()"/><p/>
+                <button onclick="onAddWS();" id="addServiceBtn" class=".btn" disabled>Enter</button>
             </div>
             <div id="app"></div>
             <div id="service_output"></div>
