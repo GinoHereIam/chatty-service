@@ -78,8 +78,6 @@ class Login extends React.Component {
                 "password": this.state.password,
                 "content": "",
             });
-
-            console.log(json);
             this.state.socket.send(json)
         }
     };
