@@ -20,6 +20,8 @@ import java.util.*
     TODO Create own library which the client/service can use the protocol
 */
 
+
+// TODO add isConnected state
 data class User(
         // Add more user properties here
         val conn: Session,
