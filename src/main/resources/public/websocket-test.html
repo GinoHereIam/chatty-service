@@ -1,46 +1,50 @@
 <!DOCTYPE html>
 <html>
 <meta charset="utf-8"/>
-    <head>
-        <title>Chatty</title>
-        <link rel="stylesheet" type="text/css" href="/style.css">
-        <script crossorigin src="/scripts/node_modules/react/dist/react.js"></script>
-        <script crossorigin src="/scripts/node_modules/react-dom/dist/react-dom.js"></script>
-        <script crossorigin src="/scripts/node_modules/babel-standalone/babel.js"></script>
-        <script crossorigin src="/scripts/reconnecting-websocket.min.js"></script>
-        <script type="text/babel" src="scripts/index.js"></script>
-    </head>
-    <body>
-    <script type="text/babel">
-        let onAddWS = function() {
-            // Get service first
-            let address = document.getElementById('ws_input').value;
-            document.getElementById('service_output').style.display = "block";
+<head>
+    <title>Chatty - Self-hosted chat!</title>
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <script crossorigin src="/scripts/node_modules/react/dist/react.js"></script>
+    <script crossorigin src="/scripts/node_modules/react-dom/dist/react-dom.js"></script>
+    <script crossorigin src="/scripts/node_modules/babel-standalone/babel.js"></script>
+    <script crossorigin src="/scripts/reconnecting-websocket.min.js"></script>
+    <script type="text/babel" src="scripts/index.js"></script>
+</head>
+<body>
+<div class="banner">
+    Your own communication channel! Your own cloud chat service!
+</div>
+<div class="box">
+    <div id="ws">
+        <h1>Enter service</h1>
+        <label for="ws_input">Service address:</label><br/>
+        <input id="ws_input" onchange="checkInput()"/>
+        <p/>
+        <button onclick="onAddWS();" id="addServiceBtn" class=".btn" disabled>Enter</button>
+    </div>
+    <div id="app"></div>
+    <div id="service_output"></div>
+</div>
+</body>
+<script type="text/babel">
+    let onAddWS = function () {
+        // Get service first
+        let address = document.getElementById('ws_input').value;
+        document.getElementById('service_output').style.display = "block";
 
-            ReactDOM.render(
+        ReactDOM.render(
                 <Auth address={address}/>,
-                document.getElementById('app')
-            );
-        };
+            document.getElementById('app')
+        );
+    };
 
-        let checkInput = function() {
-            // Get service first
-            let address = document.getElementById('ws_input').value;
-            // Check for valid input
-            let btn = document.getElementById('addServiceBtn');
-            btn.disabled = address === '';
-        };
+    let checkInput = function () {
+        // Get service first
+        let address = document.getElementById('ws_input').value;
+        // Check for valid input
+        let btn = document.getElementById('addServiceBtn');
+        btn.disabled = address === '';
+    };
 
-    </script>
-        <div class="box">
-            <div id="ws">
-                <h1>Enter service</h1>
-                <label for="ws_input">Service address:</label><br/>
-                <input id="ws_input" onchange="checkInput()"/><p/>
-                <button onclick="onAddWS();" id="addServiceBtn" class=".btn" disabled>Enter</button>
-            </div>
-            <div id="app"></div>
-            <div id="service_output"></div>
-        </div>
-    </body>
+</script>
 </html>
