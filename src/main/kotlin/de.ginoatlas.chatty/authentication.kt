@@ -55,7 +55,7 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
             if (!it.token.equals(UUID.fromString("00000000-0000-0000-0000-000000000000"))) {
                 // it's in global list + credential token already changed!
                 proto.responseType = ResponseType.FAILED
-                proto.header.setAdditionalText = "[chatty-service]: ${it.name} is already registered!"
+                proto.header.setAdditionalText = "[chatty-service]: ${it.username} is already registered!"
                 return proto
             }
         }
