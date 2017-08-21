@@ -22,7 +22,7 @@ fun main(args: Array<String>) = runBlocking<Unit> {
     val users: MutableList<User> = mutableListOf()
 
     val router = Router {
-        get("/test", fun(): Handler = {
+        get("/client", fun(): Handler = {
             val websocket_test = this::class.java.getResource("/public/websocket-test.html").readText()
             Response().html(websocket_test)
         })
