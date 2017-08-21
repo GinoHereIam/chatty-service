@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html>
 <meta charset="utf-8"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+
 <head>
     <title>Chatty - Self-hosted chat!</title>
     <link rel="stylesheet" type="text/css" href="/style.css">
@@ -41,9 +45,18 @@
     let checkInput = function () {
         // Get service first
         let address = document.getElementById('ws_input').value;
-        // Check for valid input
         let btn = document.getElementById('addServiceBtn');
-        btn.disabled = address === '';
+
+        // Check for valid websocket connection
+        // if the connection opens, it must work!
+        let _socket = new WebSocket(address);
+        _socket.onopen = function () {
+            btn.disabled = false
+        };
+
+        _socket.onerror = function () {
+            btn.disabled = true
+        };
     };
 
 </script>
