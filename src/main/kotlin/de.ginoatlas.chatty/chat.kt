@@ -31,7 +31,8 @@ class Chat {
                 it.name == participantID }
                     .forEach {
                         // TODO valid CPoW
-                        it.conn.remote.sendString("My message")
+                        // session.send(Frame.Text("This does not exist yet."))
+                        //it.conn.remote.sendString("My message")
                     }
         }
     }
