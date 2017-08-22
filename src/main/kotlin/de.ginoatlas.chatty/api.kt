@@ -4,6 +4,7 @@ package de.ginoatlas.chatty
 import com.beust.klaxon.JsonArray
 import com.beust.klaxon.json
 import org.eclipse.jetty.websocket.api.Session
+import org.jetbrains.ktor.websocket.DefaultWebSocketSession
 import org.joda.time.DateTime
 import java.util.*
 
@@ -21,10 +22,16 @@ import java.util.*
 */
 
 
+// Global constants
+val user_minimumLength = 4
+val user_maxLength = 15
+val message_content_maxLength = 1024
+val password_hash_length = 512
+
 // TODO add isConnected state
 data class User(
         // Add more user properties here
-        val conn: Session,
+        val conn: DefaultWebSocketSession?,
         val sessionID: UUID,
         val minimumLength: Int = 4
 ) {

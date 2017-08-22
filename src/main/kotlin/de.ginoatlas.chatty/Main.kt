@@ -2,75 +2,97 @@ package de.ginoatlas.chatty
 
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
-import com.danneu.kog.*
-import com.danneu.kog.batteries.logger
-import com.danneu.kog.batteries.serveStatic
 import de.ginoatlas.chatty.util.PropertyManager
-import de.ginoatlas.chatty.util.service
 import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.runBlocking
-import org.eclipse.jetty.websocket.api.Session
+import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.features.*
+import org.jetbrains.ktor.routing.*
+import org.jetbrains.ktor.sessions.*
+import org.jetbrains.ktor.util.*
+import org.jetbrains.ktor.websocket.*
+import org.jetbrains.ktor.host.*
+import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.jetty.*
+import org.jetbrains.ktor.response.*
 import org.joda.time.DateTime
-import java.time.Duration
 
-fun main(args: Array<String>) = runBlocking<Unit> {
-    val chatty_config = PropertyManager().getConfig()
-    val parser = Parser()
+import java.time.*
 
-    // Each connected user
-    val users: MutableList<User> = mutableListOf()
+data class ChatSession(val id: String)
 
-    val router = Router {
-        get("/client", fun(): Handler = {
-            val websocket_test = this::class.java.getResource("/public/websocket-test.html").readText()
-            Response().html(websocket_test)
-        })
+fun Application.module() {
+    install(DefaultHeaders)
+    install(CallLogging)
+    install(WebSockets) {
+        pingPeriod = Duration.ofMinutes(1)
+    }
 
-        // This endpoint will open a websocket connection that echos back any text the client sends it.
-        get("/chatty", fun(): Handler = {
-            // Current limitation: The first argument to Response.websocket() must be a static url path.
-            // It does *not* accept route patterns like "/ws/<num>". (#willfix)
-            Response.websocket("/chatty", fun(_: Request, session: Session): WebSocketHandler {
-                // Upon each websocket connection at this endpoint, generate a random id for it
-                val id = java.util.UUID.randomUUID()
+    install(Routing) {
+        install(Sessions) {
+            cookie<ChatSession>("SESSION")
+        }
 
-                val password: Password = Password()
-                val header: Header = Header()
-                val action: ActionType = ActionType.NONE
-                val response: ResponseType = ResponseType.NONE
-                val user = User(session, id)
+        intercept(ApplicationCallPipeline.Infrastructure) {
+            if(call.sessions.get<ChatSession>() == null) {
+                call.sessions.set(ChatSession(nextNonce()))
+            }
 
-                var protocol: CPoW = CPoW(
-                        // Each user is create by first connection
-                        participant = user,
-                        // Set password attributes here
-                        password = password,
-                        // There is always a basic header with no information
-                        header = header,
-                        // Default action = None
-                        // Needed to overwritten on each action request
-                        action = action,
-                        // Default response = None
-                        // Needed to overwritten on each response
-                        response = response
-                )
+        }
 
-                val auth = Authentication(users, protocol)
+        val chatty_config = PropertyManager().getConfig()
+        val parser = Parser()
 
-                println("Started websocket connection ${DateTime.now().toLocalDateTime()}")
+        // Each connected user
+        val users: MutableList<User> = mutableListOf()
 
-                // the connection should be never closed!
-                session.idleTimeout = 0
+        webSocket("/chatty") {
 
-                return object : WebSocketHandler {
-                    override fun onOpen() {
-                        println("[$id] a client connected")
-                        users.add(protocol.user)
-                    }
+            // Upon each websocket connection at this endpoint, generate a random id for it
+            val id = java.util.UUID.randomUUID()
+            val sessionID = call.sessions.get<ChatSession>()
+            val session = this
 
-                    override fun onText(message: String) {
+            if ( sessionID == null ) {
+                close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "No session"))
+                return@webSocket
+            }
+
+            val password = Password()
+            val header = Header()
+            val action: ActionType = ActionType.NONE
+            val response: ResponseType = ResponseType.NONE
+            val user = User(this, id)
+
+            var protocol: CPoW = CPoW(
+                    // Each user is create by first connection
+                    participant = user,
+                    // Set password attributes here
+                    password = password,
+                    // There is always a basic header with no information
+                    header = header,
+                    // Default action = None
+                    // Needed to overwritten on each action request
+                    action = action,
+                    // Default response = None
+                    // Needed to overwritten on each response
+                    response = response
+            )
+
+            val auth = Authentication(users, protocol)
+
+            println("Started websocket connection ${DateTime.now().toLocalDateTime()}")
+            println("[$id] a client connected ${call.request.local.remoteHost}")
+            users.add(protocol.user)
+
+            try {
+                incoming.consumeEach( { frame ->
+                    if( frame is Frame.Text) {
+
                         // println("[$id] client sent us: $message")
+                        val message = frame.readText()
 
                         val stringBuilder = StringBuilder(message)
                         val cpow = parser.parse(stringBuilder) as JsonObject
@@ -110,7 +132,7 @@ fun main(args: Array<String>) = runBlocking<Unit> {
                                         protocol.responseType = ResponseType.SUCCESS
                                         protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.sessionID} is connected!"
                                         val response = parseCPOW(protocol).toJsonString()
-                                        session.remote.sendString(response)
+                                        session.send(Frame.Text(response))
                                     }
                                 }
 
@@ -119,8 +141,8 @@ fun main(args: Array<String>) = runBlocking<Unit> {
                                         // TODO Make user shown online
                                         protocol.header.setAdditionalText = "You are offline now!"
                                         val response = parseCPOW(protocol).toJsonString()
-                                        session.remote.sendString(response)
-                                        session.close()
+                                        session.send(Frame.Text(response))
+                                        close(CloseReason(CloseReason.Codes.GOING_AWAY, "client left"))
                                     }
                                 }
 
@@ -149,7 +171,7 @@ fun main(args: Array<String>) = runBlocking<Unit> {
                                             protocol.chats.add(chat)
 
                                             val response = parseCPOW(protocol).toJsonString()
-                                            session.remote.sendString(response)
+                                            session.send(Frame.Text(response))
                                         }else{
                                             protocol.responseType = ResponseType.FAILED
                                             protocol.header.setAdditionalText = "[chatty-service]: failed to create chat with ${participant}!"
@@ -167,7 +189,7 @@ fun main(args: Array<String>) = runBlocking<Unit> {
                                         protocol = auth.register()
 
                                         val response = parseCPOW(protocol).toJsonString()
-                                        session.remote.sendString(response)
+                                        session.send(Frame.Text(response))
                                     }
                                 }
 
@@ -181,7 +203,7 @@ fun main(args: Array<String>) = runBlocking<Unit> {
 
                                         if (protocol.user.token.toString() != "") {
                                             val response = parseCPOW(protocol).toJsonString()
-                                            session.remote.sendString(response)
+                                            session.send(Frame.Text(response))
                                         }
                                     }
                                 }
@@ -189,18 +211,18 @@ fun main(args: Array<String>) = runBlocking<Unit> {
                                 ActionType.USER_ADD_FRIEND -> {
                                     // TODO create user add process
                                     val asyncAdd = launch(CommonPool) {
-                                        session.remote.sendString("This user does not yet exist.")
+                                        session.send(Frame.Text("This does not exist yet."))
                                     }
                                 }
 
                                 ActionType.USER_DELETE_FRIEND -> {
                                     val asyncDelete = launch(CommonPool) {
-                                        session.remote.sendString("This user does not yet exist.")
+                                        session.send(Frame.Text("This does not exist yet."))
                                     }
                                 }
 
                                 else -> {
-                                    session.remote.sendString("Unknown message type!")
+                                    session.send(Frame.Text("Unknown message type!"))
                                 }
                             }
                         } catch (e: TypeCastException) {
@@ -211,40 +233,20 @@ fun main(args: Array<String>) = runBlocking<Unit> {
                             println(e.printStackTrace())
                         }
                     }
+                })
+            } finally {
+                session.send(Frame.Text("Connection closed!"))
+            }
 
-                    override fun onError(cause: Throwable) {
-                        println("[$id] onError: ${cause.message}")
-                    }
+        }
 
-                    override fun onClose(statusCode: Int, reason: String?) {
-                        println("[$id] onClose: $statusCode ${reason ?: "<no reason>"}")
-                    }
-                }
-            })
-        })
-
-        // This endpoint demonstrates how to mount a websocket handler on a dynamic URL that accepts request
-        // paths like /ws/1, /ws/2, /ws/3, etc.
-        //
-        // It also demonstrates the current limitation that the first argument to `Response.websocket()` must
-        // be a static path. (#willfix)
-        //
-        // Due to this limitation, dynamic path websocket handlers by default will currently cause unbounded growth of
-        // the internal jetty mapping of path to websocket handler until I find a better way to work with jetty.
-        /*get("/ws/<>", fun(n: Int): Handler = {
-            Response.websocket("/ws/$n", fun(_: Request, session: Session) = object : WebSocketHandler {
-                override fun onOpen() {
-                    session.remote.sendString("you connected to /ws/$n")
-                }
-            })
-        })*/
+        static {
+            defaultResource("index.html", "public")
+            resources("public")
+        }
     }
-
-    val middleware = logger()
-    val handler = middleware(router.handler())
-
-    val public = this::class.java.getResource("/public").path
-    val static =  serveStatic(public, maxAge = Duration.ofDays(365))
-    Server(static(handler)).listen(chatty_config[service.port])
 }
 
+fun main(args: Array<String>) {
+    embeddedServer(Jetty, commandLineEnvironment(args)).start()
+}
