@@ -88,8 +88,8 @@ fun Application.module() {
             users.add(protocol.user)
 
             try {
-                incoming.consumeEach( { frame ->
-                    if( frame is Frame.Text) {
+                incoming.consumeEach({ frame ->
+                    if (frame is Frame.Text) {
 
                         // println("[$id] client sent us: $message")
                         val message = frame.readText()
@@ -172,7 +172,7 @@ fun Application.module() {
 
                                             val response = parseCPOW(protocol).toJsonString()
                                             session.send(Frame.Text(response))
-                                        }else{
+                                        } else {
                                             protocol.responseType = ResponseType.FAILED
                                             protocol.header.setAdditionalText = "[chatty-service]: failed to create chat with ${participant}!"
                                         }
@@ -234,8 +234,8 @@ fun Application.module() {
                         }
                     }
                 })
-            } finally {
-                session.send(Frame.Text("Connection closed!"))
+            }  finally {
+                println("[chatty-service]: $id disconnected")
             }
 
         }
