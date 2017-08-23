@@ -1,4 +1,6 @@
 package de.ginoatlas.chatty
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 import java.security.MessageDigest
 import kotlin.experimental.and
@@ -20,6 +22,8 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
     // Register and get a credential token
     suspend fun register(): CPoW {
 
+        var isRegistered = false
+
         // Checking for password/username or registered token!
         if (password == "" || username == "" || name == "") {
             proto.responseType = ResponseType.FAILED
@@ -40,43 +44,33 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
             return proto
         }
 
-        /*
-         * FIXME even it is only for runtime! Actually data should come from database
-         * 1. user is already in global user list
-         * 2. the token is changed
-         * ... this should work on different connections with same user
-         */
-
-        // Those users are the current connected one
-        users.filter {
-            it.username == username
-        }.forEach {
-            // The user seems to be already in global list
-            if (!it.token.equals(UUID.fromString("00000000-0000-0000-0000-000000000000"))) {
-                // it's in global list + credential token already changed!
-                proto.responseType = ResponseType.FAILED
-                proto.header.setAdditionalText = "[chatty-service]: ${it.username} is already registered!"
-                return proto
+        transaction {
+            Users.select {
+                Users.username.eq(username)
+            }.forEach {
+                if(it[Users.username] == username) {
+                    isRegistered = true
+                }
             }
         }
 
         val enc = encrypt(proto)
         val protocol = enc.keys.first()
         encrypted = enc.values.first()
-        if (encrypted != "") {
 
-            // TODO good place to save user credentials in database
-            protocol.user.token = UUID.randomUUID()
-            // Set user defined properties
+        if(!isRegistered) {
+            // Add user data to database
+            dbRegister(username, name, encrypted)
+
             protocol.user.username = username
             protocol.user.name = name
             // Set server informations
-            protocol.header.setAdditionalText = "[chatty-service]: ${proto.user.username} is registered!"
+            protocol.header.setAdditionalText = "[chatty-service]: ${proto.user.username} is successfully registered!"
             protocol.responseType = ResponseType.SUCCESS
             return protocol
 
         }else {
-            protocol.header.setAdditionalText = "[chatty-service]: could not encrypt password."
+            protocol.header.setAdditionalText = "[chatty-service]: ${proto.user.username} is already registered!"
             protocol.responseType = ResponseType.FAILED
 
             return protocol
@@ -85,21 +79,22 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
 
     // TODO return the login token
     suspend fun login(): CPoW {
+        proto.user.username = username
         val enc = encrypt(proto)
         val protocol = enc.keys.first()
-        val _encrypted = enc.values.first()
+        val encrypted = enc.values.first()
 
-        // TODO get encrypted password from DB
-        if(_encrypted == encrypted) {
+        // Is it useful to save userID from DB to CPoW?
+        val userID = dbLogin(username, encrypted)
+        return if(userID != -0) {
             protocol.responseType = ResponseType.SUCCESS
+            protocol.user.token = UUID.randomUUID()
             protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.username} has been successfully logged in!"
-
-            return protocol
+            protocol
         }else {
             protocol.responseType = ResponseType.FAILED
             protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.username} has been failed to log in! Wrong password?"
-
-            return protocol
+            protocol
         }
     }
 
