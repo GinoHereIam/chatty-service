@@ -31,13 +31,19 @@
 </div>
 </body>
 <script type="text/babel">
+    let _socket;
+    let btn = document.getElementById('addServiceBtn');
+
     let onAddWS = function () {
         // Get service first
-        let address = document.getElementById('ws_input').value;
+        let address = document.getElementById('ws_input');
         document.getElementById('service_output').style.display = "block";
 
+        _socket.close();
+        address.disabled = true;
+
         ReactDOM.render(
-                <Auth address={address}/>,
+                <Auth address={address.value}/>,
             document.getElementById('app')
         );
     };
@@ -45,18 +51,18 @@
     let checkInput = function () {
         // Get service first
         let address = document.getElementById('ws_input').value;
-        let btn = document.getElementById('addServiceBtn');
-
         // Check for valid websocket connection
         // if the connection opens, it must work!
-        let _socket = new WebSocket(address);
+        _socket = new WebSocket(address);
         _socket.onopen = function () {
-            btn.disabled = false
+            btn.disabled = false;
         };
 
         _socket.onerror = function () {
             btn.disabled = true
         };
+
+
     };
 
 </script>
