@@ -16,6 +16,7 @@ import org.jetbrains.ktor.websocket.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.jetty.*
+import org.jetbrains.ktor.request.host
 import org.jetbrains.ktor.response.*
 import org.joda.time.DateTime
 
@@ -47,6 +48,9 @@ fun Application.module() {
 
         // Each connected user
         val users: MutableList<User> = mutableListOf()
+
+        initDB()
+        setupDB()
 
         webSocket("/chatty") {
 
@@ -84,7 +88,7 @@ fun Application.module() {
             val auth = Authentication(users, protocol)
 
             println("Started websocket connection ${DateTime.now().toLocalDateTime()}")
-            println("[$id] a client connected ${call.request.local.remoteHost}")
+            println("[$id] a client connected ${call.request.local.host}")
             users.add(protocol.user)
 
             try {
