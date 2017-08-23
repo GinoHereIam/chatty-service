@@ -1,10 +1,11 @@
 package de.ginoatlas.chatty
+
 import java.util.*
 import java.security.MessageDigest
 import kotlin.experimental.and
 
 
-data class Authentication(val users: MutableList<User>, val proto: CPoW) {
+data class Authentication(private val users: MutableList<User>, private val proto: CPoW) {
     // Has to be set always!
     var password: String = ""
         set
@@ -20,6 +21,8 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
     // Register and get a credential token
     suspend fun register(): CPoW {
 
+        var isRegistered = false
+
         // Checking for password/username or registered token!
         if (password == "" || username == "" || name == "") {
             proto.responseType = ResponseType.FAILED
@@ -28,13 +31,13 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
         }
 
         // Check password length
-        if(password.length < proto.password.minimumLength) {
+        if (password.length < proto.password.minimumLength) {
             proto.responseType = ResponseType.FAILED
             proto.header.setAdditionalText = "[chatty-service]: Your password needs to be at least ${proto.password.minimumLength} chars long!"
             return proto
         }
 
-        if(username.length < proto.user.minimumLength || name.length < proto.user.minimumLength ) {
+        if (username.length < proto.user.minimumLength || name.length < proto.user.minimumLength) {
             proto.responseType = ResponseType.FAILED
             proto.header.setAdditionalText = "[chatty-service]: Your username/name needs to be at least ${proto.user.minimumLength} chars long!"
             return proto
@@ -56,6 +59,7 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
                 // it's in global list + credential token already changed!
                 proto.responseType = ResponseType.FAILED
                 proto.header.setAdditionalText = "[chatty-service]: ${it.username} is already registered!"
+                isRegistered = true
                 return proto
             }
         }
@@ -64,8 +68,10 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
         val protocol = enc.keys.first()
         encrypted = enc.values.first()
         if (encrypted != "") {
-
             // TODO good place to save user credentials in database
+            if (!isRegistered) {
+
+            }
             protocol.user.token = UUID.randomUUID()
             // Set user defined properties
             protocol.user.username = username
@@ -75,7 +81,7 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
             protocol.responseType = ResponseType.SUCCESS
             return protocol
 
-        }else {
+        } else {
             protocol.header.setAdditionalText = "[chatty-service]: could not encrypt password."
             protocol.responseType = ResponseType.FAILED
 
@@ -90,16 +96,16 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
         val _encrypted = enc.values.first()
 
         // TODO get encrypted password from DB
-        if(_encrypted == encrypted) {
+        return if (_encrypted == encrypted) {
             protocol.responseType = ResponseType.SUCCESS
             protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.username} has been successfully logged in!"
 
-            return protocol
-        }else {
+            protocol
+        } else {
             protocol.responseType = ResponseType.FAILED
             protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.username} has been failed to log in! Wrong password?"
 
-            return protocol
+            protocol
         }
     }
 
@@ -112,7 +118,7 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
             val byteData = MD.digest()
 
             val sb = StringBuffer()
-            for (i in 0..byteData.size - 1) {
+            for (i in 0 until byteData.size) {
                 sb.append(Integer.toString((byteData[i] and 0xff.toByte()) + 0x100, 16).substring(1))
             }
 
@@ -120,7 +126,7 @@ data class Authentication(val users: MutableList<User>, val proto: CPoW) {
 
             return mapOf(prot to hex)
 
-        }catch(e: Exception) {
+        } catch (e: Exception) {
             // Let's get the stacktrace, even this should never happen
             println(e.printStackTrace())
 
