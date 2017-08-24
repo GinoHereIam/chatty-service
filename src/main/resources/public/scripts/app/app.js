@@ -84,14 +84,17 @@ class Login extends React.Component {
 
     render() {
         return (
-            <div>
-                <h1>Login</h1>
+            <div className="container">
+                <h1 className="title">Login</h1>
                 <form onSubmit={this.login}>
-                    <label>Username:</label><br/>
-                    <input name="username" onChange={this.onChange} value={this.state.username}/><p/>
-                    <label>Password:</label><br/>
-                    <input name="password" onChange={this.onChange} value={this.state.password} type="password"/><p/>
-                    <input type="submit" value="Submit" />
+                    <p className="control-box">
+                        <label className="label">Username:</label>
+                        <input className="input" name="username" onChange={this.onChange} value={this.state.username}/>
+                        <label className="label">Password:</label>
+                        <input className="input" name="password" onChange={this.onChange} value={this.state.password} type="password"/><p/>
+                        <br/>
+                        <input className="button is-primary" type="submit" value="Submit" />
+                    </p>
                 </form>
             </div>
         )
@@ -220,17 +223,21 @@ class Register extends React.Component {
 
     render() {
         return (
-            <div>
-                <h1>Register</h1>
+            <div className="container">
+                <h1 className="title">Register</h1>
                 <form onSubmit={this.register}>
-                    <label>Username:</label><br/>
-                    <input name="username" onChange={this.validateUsernameOnChange} value={this.state.username}/><p/>
-                    <label>Display name:</label><br/>
-                    <input name="name" onChange={this.validateUsernameOnChange} value={this.state.name}/><p/>
-                    <label>Password:</label><br/>
-                    <input name="password" onChange={this.validatePasswordOnChange} value={this.state.password} type="password"/><p/>
-                    <span id="validate"/><p/>
-                    <input type="submit" value="Submit" id="submitBtn" disabled="true"/>
+                    <p className="control-box">
+                        <label className="label">Username:</label>
+                        <input className="input" name="username" onChange={this.validateUsernameOnChange} value={this.state.username}/>
+                        <label className="label">Display name:</label>
+                        <input className="input" name="name" onChange={this.validateUsernameOnChange} value={this.state.name}/>
+                        <label className="label">Password:</label><p/>
+                        <input className="input" name="password" onChange={this.validatePasswordOnChange} value={this.state.password} type="password"/>
+                        <br/>
+                        <span id="validate"/>
+                        <br/>
+                        <input className="button is-primary" type="submit" value="Submit" id="submitBtn" disabled="true"/>
+                    </p>
                 </form>
             </div>
         )
@@ -303,10 +310,14 @@ class Auth extends React.Component {
 
     render() {
         return (
-            <div>
-                <Login socket={this.state.socket} />
-                <Register socket={this.state.socket} />
-            </div>
+            <span>
+                <div className="box">
+                    <Login socket={this.state.socket} />
+                </div>
+                <div className="box">
+                    <Register socket={this.state.socket} />
+                </div>
+            </span>
         );
     }
 }
