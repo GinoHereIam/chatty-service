@@ -234,7 +234,7 @@ fun Application.module() {
                     }
                 })
             }  finally {
-                println("[chatty-service]: $id disconnected")
+                println("[chatty-service]: ${protocol.user.username} disconnected")
             }
 
         }
