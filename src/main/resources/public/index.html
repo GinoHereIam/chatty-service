@@ -9,6 +9,12 @@
     <title>Chatty - Self-hosted chat!</title>
     <link rel="stylesheet" type="text/css" href="scripts/node_modules/bulma/css/bulma.css">
     <link rel="stylesheet" type="text/css" href="style.css">
+    <!-- scripts -->
+    <script src="scripts/node_modules/babel-standalone/babel.js"></script>
+    <script src="scripts/reconnecting-websocket.min.js"></script>
+    <script src="scripts/node_modules/react/dist/react.js"></script>
+    <script src="scripts/node_modules/react-dom/dist/react-dom.js"></script>
+    <script src="scripts/dist/bundle.js"></script>
 </head>
 <body>
 <section class="hero is-primary">
@@ -23,9 +29,6 @@
         </div>
     </div>
 </section>
-<div class="box">
-    <div class="container" id="service_output"></div>
-</div>
 <div class="box">
     <div id="ws" class="container">
         <h1 class="title">Service</h1>
@@ -43,46 +46,9 @@
         </div>
     </div>
 </div>
+<div class="box">
+    <div class="container" id="service_output"></div>
+</div>
 <span id="app"></span>
 </body>
-<script type="text/babel">
-    let _socket;
-    let btn = document.getElementById('addServiceBtn');
-
-    let onAddWS = function () {
-        // Get service first
-        let address = document.getElementById('ws_input');
-        document.getElementById('service_output').style.display = "block";
-
-        _socket.close();
-        address.disabled = true;
-
-        ReactDOM.render(
-                <Auth address={address.value}/>,
-            document.getElementById('app')
-        );
-    };
-
-    let checkInput = function () {
-        // Get service first
-        let address = document.getElementById('ws_input').value;
-        // Check for valid websocket connection
-        // if the connection opens, it must work!
-        _socket = new WebSocket(address);
-        _socket.onopen = function () {
-            btn.disabled = false;
-        };
-
-        _socket.onerror = function () {
-            btn.disabled = true
-        };
-
-
-    };
-</script>
-<script src="scripts/node_modules/babel-standalone/babel.js"></script>
-<script src="scripts/reconnecting-websocket.min.js"></script>
-<script src="scripts/node_modules/react/dist/react.js"></script>
-<script src="scripts/node_modules/react-dom/dist/react-dom.js"></script>
-<script type="text/babel" src="scripts/app/app.js"></script>
 </html>

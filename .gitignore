@@ -1,0 +1,6 @@
+src/main/resources/public/scripts/node_modules
+src/main/resources/public/scripts/dist
+.gradle/
+.idea/
+build/
+out/
