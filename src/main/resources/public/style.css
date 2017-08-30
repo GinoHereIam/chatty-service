@@ -9,3 +9,7 @@ html, body {
 .box {
     opacity: 0.9;
 }
+
+#service_output_box {
+    display: none;
+}
