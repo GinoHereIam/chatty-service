@@ -234,7 +234,11 @@ fun Application.module() {
                     }
                 })
             }  finally {
-                println("[chatty-service]: ${protocol.user.username} disconnected")
+                if (protocol.user.username.isNullOrEmpty()) {
+                    println("[chatty-service]: $id disconnected")
+                }else {
+                    println("[chatty-service]: ${protocol.user.username} disconnected")
+                }
             }
 
         }
