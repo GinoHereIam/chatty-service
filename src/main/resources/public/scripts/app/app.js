@@ -312,7 +312,6 @@ export class Auth extends React.Component {
     };
     */
 
-
     render() {
         return (
             <span>
@@ -331,7 +330,8 @@ let _socket;
 window.onAddWS = function () {
     // Get service first
     let address = document.getElementById('ws_input');
-    // document.getElementById('service_output').style.display = "block";
+    document.getElementById('service_output_box').style.display = "block";
+
 
     let service = document.getElementById('ws');
     if(_socket !== undefined) _socket.close();
