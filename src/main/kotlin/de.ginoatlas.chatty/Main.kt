@@ -47,6 +47,10 @@ fun Application.module() {
         // Each connected user
         val users: MutableList<User> = mutableListOf()
 
+        // Database setup
+        initDB()
+        setupDB()
+
         webSocket("/chatty") {
 
             // Upon each websocket connection at this endpoint, generate a random id for it
@@ -83,7 +87,7 @@ fun Application.module() {
             val auth = Authentication(users, protocol)
 
             println("Started websocket connection ${DateTime.now().toLocalDateTime()}")
-            println("[$id] a client connected ${call.request.local.remoteHost}")
+            println("[$id] a client connected ${call.request.local.host}")
             users.add(protocol.user)
 
             try {

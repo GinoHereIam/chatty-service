@@ -45,7 +45,7 @@ fun setupDB() {
 
 /* Return userID */
 fun dbRegister(username: String, name: String, password: String): Int {
-    var userID: Int = -0
+    var userID: Int = -1
     transaction {
         userID = Users.insert {
             it[Users.username] = username
@@ -59,7 +59,7 @@ fun dbRegister(username: String, name: String, password: String): Int {
 
 /* Return userID */
 fun dbLogin(username: String, password: String): Int {
-    var userID: Int = -0
+    var userID: Int = -1
     transaction {
         Users.select {
             Users.username.eq(username)
@@ -73,7 +73,7 @@ fun dbLogin(username: String, password: String): Int {
 }
 
 fun dbFindUserByUsername(username: String): Int {
-    var userID: Int = -0
+    var userID: Int = -1
     transaction {
         Users.select {
             Users.username.eq(username)

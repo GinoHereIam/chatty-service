@@ -43,48 +43,27 @@ data class Authentication(private val users: MutableList<User>, private val prot
             return proto
         }
 
-        /*
-         * FIXME even it is only for runtime! Actually data should come from database
-         * 1. user is already in global user list
-         * 2. the token is changed
-         * ... this should work on different connections with same user
-         */
-
-        // Those users are the current connected one
-        users.filter {
-            it.username == username
-        }.forEach {
-            // The user seems to be already in global list
-            if (!it.token.equals(UUID.fromString("00000000-0000-0000-0000-000000000000"))) {
-                // it's in global list + credential token already changed!
-                proto.responseType = ResponseType.FAILED
-                proto.header.setAdditionalText = "[chatty-service]: ${it.username} is already registered!"
-                isRegistered = true
-                return proto
-            }
-        }
+        if (dbFindUserByUsername(username) != -1) isRegistered = true
 
         val enc = encrypt(proto)
         val protocol = enc.keys.first()
         encrypted = enc.values.first()
         if (encrypted != "") {
-            // TODO good place to save user credentials in database
             if (!isRegistered) {
-
+                dbRegister(username, name, encrypted)
             }
             protocol.user.token = UUID.randomUUID()
             // Set user defined properties
             protocol.user.username = username
             protocol.user.name = name
             // Set server informations
-            protocol.header.setAdditionalText = "[chatty-service]: ${proto.user.username} is registered!"
+            protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.username} is registered!"
             protocol.responseType = ResponseType.SUCCESS
             return protocol
 
         } else {
             protocol.header.setAdditionalText = "[chatty-service]: could not encrypt password."
             protocol.responseType = ResponseType.FAILED
-
             return protocol
         }
     }
@@ -95,16 +74,14 @@ data class Authentication(private val users: MutableList<User>, private val prot
         val protocol = enc.keys.first()
         val _encrypted = enc.values.first()
 
-        // TODO get encrypted password from DB
-        return if (_encrypted == encrypted) {
+        val userID = dbLogin(username, _encrypted)
+        return if (userID != -1) {
             protocol.responseType = ResponseType.SUCCESS
             protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.username} has been successfully logged in!"
-
             protocol
         } else {
             protocol.responseType = ResponseType.FAILED
             protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.username} has been failed to log in! Wrong password?"
-
             protocol
         }
     }
