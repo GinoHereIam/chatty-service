@@ -1,3 +1,6 @@
+import * as React from "react";
+import * as ReactDOM from "react-dom";
+
 // Functions
 function parseCPOW(event) {
     // Expect server event data
@@ -98,7 +101,7 @@ class Login extends React.Component {
                 </form>
             </div>
         )
-    }
+    };
 }
 
 class Register extends React.Component {
@@ -206,7 +209,6 @@ class Register extends React.Component {
 
     register (event) {
         event.preventDefault();
-        console.log(this.state);
         if( this.state.username.length !== 0 || this.state.name.length !== 0 || this.state.password.length !== 0) {
             this.state.socket.send(JSON.stringify({
                 "actionType": "USER_REGISTER_ACCOUNT",
@@ -244,7 +246,7 @@ class Register extends React.Component {
     }
 }
 
-class Auth extends React.Component {
+export class Auth extends React.Component {
     constructor(props) {
         super(props);
 
@@ -253,7 +255,7 @@ class Auth extends React.Component {
 
         };
 
-        this.handleChange = this.handleChange.bind(this);
+        //this.handleChange = this.handleChange.bind(this);
     }
 
     shouldComponentUpdate() {
@@ -293,6 +295,7 @@ class Auth extends React.Component {
         };
     }
 
+    /*
     handleChange = function(event) {
         event.preventDefault();
 
@@ -307,6 +310,8 @@ class Auth extends React.Component {
             socket: socket
         })
     };
+    */
+
 
     render() {
         return (
@@ -321,3 +326,37 @@ class Auth extends React.Component {
         );
     }
 }
+
+let _socket;
+window.onAddWS = function () {
+    // Get service first
+    let address = document.getElementById('ws_input');
+    // document.getElementById('service_output').style.display = "block";
+
+    let service = document.getElementById('ws');
+    if(_socket !== undefined) _socket.close();
+    setTimeout(service.style.display = 'none', 3000);
+
+    ReactDOM.render(
+        <Auth address={address.value}/>,
+        document.getElementById('app')
+    );
+};
+
+window.checkInput = function () {
+    let _socket;
+    let btn = document.getElementById('addServiceBtn');
+
+    // Get service first
+    let address = document.getElementById('ws_input').value;
+    // Check for valid websocket connection
+    // if the connection opens, it must work!
+    _socket = new WebSocket(address);
+    _socket.onopen = function () {
+        btn.disabled = false;
+    };
+
+    _socket.onerror = function () {
+        btn.disabled = true;
+    };
+};
