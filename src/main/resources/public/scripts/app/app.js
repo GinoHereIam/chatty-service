@@ -39,7 +39,7 @@ function parseCPOW(event) {
         minimumLength: cpow[8].password[0].minimumLength
     };
 
-    let CPOW = {
+    return {
         version: version,
         actionType: actionType,
         message: message,
@@ -49,8 +49,25 @@ function parseCPOW(event) {
         chats: chats,
         password: password
     };
+}
 
-    return CPOW
+class Chat extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            socket: props.socket,
+            cpow: props.cpow
+        }
+    }
+
+    render() {
+        return(
+            <div>
+                Hello {this.state.cpow.user.username} to your chat!
+            </div>
+        )
+    }
 }
 
 // Chatty-client components
@@ -60,10 +77,15 @@ class Login extends React.Component {
         this.state = {
             socket: props.socket,
             username: '',
-            password: ''
+            password: '',
+            cpow: ''
         };
         this.onChange = this.onChange.bind(this);
-        this.login = this.login.bind(this)
+        this.login = this.login.bind(this);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        this.setState({ socket: nextProps.socket });
     }
 
     onChange(event) {
@@ -86,15 +108,49 @@ class Login extends React.Component {
     };
 
     render() {
+        let self = this;
+        this.state.socket.onmessage = function(event) {
+            let cpow = parseCPOW(event.data);
+
+            self.setState({
+                cpow: cpow
+            });
+
+            let service_output = cpow.header.additionalText;
+            document.getElementById('service_output').innerHTML += service_output + "<br/>";
+
+            if (self.state.cpow.responseType === "SUCCESS" && self.state.cpow.actionType === "USER_LOGIN_ACCOUNT") {
+                let body = document.body;
+
+                // Remove Everything!
+                while(body.firstChild) {
+                    body.removeChild(body.firstChild)
+                }
+
+                // Add back the app class
+                let span = document.createElement('span');
+                span.id = 'app';
+
+                body.appendChild(span);
+
+                // Render chat
+                ReactDOM.render(
+                    <Chat socket={self.state.socket} cpow={self.state.cpow} />,
+                    document.getElementById('app')
+                )
+            }
+        };
+
         return (
-            <div className="container">
+            <div className="container" id="login">
                 <h1 className="title">Login</h1>
                 <form onSubmit={this.login}>
                     <p className="control-box">
                         <label className="label">Username:</label>
                         <input className="input" name="username" onChange={this.onChange} value={this.state.username}/>
                         <label className="label">Password:</label>
-                        <input className="input" name="password" onChange={this.onChange} value={this.state.password} type="password"/><p/>
+                        <input className="input" name="password" onChange={this.onChange}
+                               value={this.state.password} type="password"/><p/>
                         <br/>
                         <input className="button is-primary" type="submit" value="Submit" />
                     </p>
@@ -141,7 +197,6 @@ class Register extends React.Component {
         };
     }
 
-
     validateUsernameOnChange(event) {
         let btn = document.getElementById('submitBtn');
         let length = event.target.value.length;
@@ -180,7 +235,6 @@ class Register extends React.Component {
 
         let good = 12;
         let minimum = this.state.cpow.password.minimumLength;
-
 
         let btn = document.getElementById('submitBtn');
         if (length >= minimum && length < good) {
@@ -225,7 +279,7 @@ class Register extends React.Component {
 
     render() {
         return (
-            <div className="container">
+            <div className="container" id="register">
                 <h1 className="title">Register</h1>
                 <form onSubmit={this.register}>
                     <p className="control-box">

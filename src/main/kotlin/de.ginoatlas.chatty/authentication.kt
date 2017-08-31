@@ -77,10 +77,15 @@ data class Authentication(private val users: MutableList<User>, private val prot
         val userID = dbLogin(username, _encrypted)
         return if (userID != -1) {
             protocol.responseType = ResponseType.SUCCESS
+            protocol.user.username = username
+            // This might be empty, if the user didn't register in same
+            // That's why we get it from database
+            protocol.user.name = dbFindNameByUsername(username)
             protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.username} has been successfully logged in!"
             protocol
         } else {
             protocol.responseType = ResponseType.FAILED
+            protocol.user.username = username
             protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.username} has been failed to log in! Wrong password?"
             protocol
         }
