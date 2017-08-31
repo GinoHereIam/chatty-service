@@ -83,3 +83,18 @@ fun dbFindUserByUsername(username: String): Int {
     }
     return userID
 }
+
+/*
+    returns display name
+ */
+fun dbFindNameByUsername(username: String): String {
+    var name = ""
+    transaction {
+        Users.select {
+            Users.username.eq(username)
+        }.forEach {
+            name = it[Users.name]
+        }
+    }
+    return name
+}
