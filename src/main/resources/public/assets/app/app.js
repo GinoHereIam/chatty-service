@@ -1,11 +1,18 @@
 // Styles
 import "./style.css";
 import "../node_modules/bulma/css/bulma.css"
+import {Container, Button, Title, Label, Input} from "re-bulma";
 // React
-import * as React from "../node_modules/react";
-import * as ReactDOM from "../node_modules/react-dom";
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
 // Websocket
 import ReconnectingWebSocket from "./vendor/reconnecting-websocket.min";
+
+import insertCss from 'insert-css';
+import css from '../node_modules/re-bulma/build/css';
+try {
+    if (typeof document !== 'undefined' || document !== null) insertCss(css, { prepend: true });
+} catch (e) {}
 
 // Functions
 function parseCPOW(event) {
@@ -71,6 +78,7 @@ class Chat extends React.Component {
         return(
             <div>
                 Hello {this.state.cpow.user.username} to your chat!
+                <Button>Test!</Button>
             </div>
         )
     }
@@ -95,8 +103,9 @@ class Login extends React.Component {
     }
 
     onChange(event) {
+        let targetName = event.target.parentNode.classList[1];
         this.setState({
-            [event.target.name]: event.target.value
+            [targetName]: event.target.value
         })
     }
 
@@ -148,20 +157,18 @@ class Login extends React.Component {
         };
 
         return (
-            <div className="container" id="login">
-                <h1 className="title">Login</h1>
+            <Container>
+                <Title size="is4">Login</Title>
                 <form onSubmit={this.login}>
                     <p className="control-box">
-                        <label className="label">Username:</label>
-                        <input className="input" name="username" onChange={this.onChange} value={this.state.username}/>
-                        <label className="label">Password:</label>
-                        <input className="input" name="password" onChange={this.onChange}
-                               value={this.state.password} type="password"/><p/>
-                        <br/>
-                        <input className="button is-primary" type="submit" value="Submit" />
+                        <Label>Username:</Label>
+                        <Input className="username" onChange={this.onChange}/>
+                        <Label>Password:</Label><p/>
+                        <Input className="password" onChange={this.onChange} type="password"/>
+                        <Button color="isPrimary" type="submit">Login</Button>
                     </p>
                 </form>
-            </div>
+            </Container>
         )
     };
 }
@@ -175,6 +182,9 @@ class Register extends React.Component {
             username: '',
             name: '',
             password: '',
+            button: 'isDisabled',
+            inputname: '',
+            inputusername: '',
             cpow: null
         };
 
@@ -204,13 +214,12 @@ class Register extends React.Component {
     }
 
     validateUsernameOnChange(event) {
-        let btn = document.getElementById('submitBtn');
         let length = event.target.value.length;
-
         let validate_field = document.getElementById('validate');
+        let targetName = event.target.parentNode.classList[1];
 
         this.setState({
-            [event.target.name]: event.target.value
+            [targetName]: event.target.value
         });
 
         if (length >= this.state.cpow.user.minimumLength) {
@@ -218,52 +227,115 @@ class Register extends React.Component {
             // Validation output
             validate_field.innerHTML = '<span style="color: #4caf50; font-weight: bold;">' +
                 '<br>Great name! ' + event.target.value + '</br></span>';
-            btn.disabled = false;
+
+            if(this.state.password.length === this.state.cpow.password.minimumLength) {
+                this.setState({
+                    button: "isActive"
+                })
+            }
 
         } else {
 
             // Validation output
             validate_field.innerHTML = '<span style="color: #f44336; font-weight: bold;">' +
                 '<br>Too short :( ' + event.target.value + '</br></span>';
-            btn.disabled = true;
+            this.setState({
+                button: "isDisabled"
+            })
         }
     }
 
     validatePasswordOnChange(event) {
         let value = event.target.value;
         let length = value.length;
+        let targetName = event.target.parentNode.classList[1];
 
         this.setState({
-            [event.target.name]: value
+            [targetName]: value
         });
 
         let validate_field = document.getElementById('validate');
 
         let good = 12;
         let minimum = this.state.cpow.password.minimumLength;
+        let usermin = this.state.cpow.user.minimumLength;
 
-        let btn = document.getElementById('submitBtn');
         if (length >= minimum && length < good) {
 
             // Validation output
             validate_field.innerHTML = '<span style="color: #4caf50; font-weight: bold;">' +
                 '<br>Good password! ' + String(good - length) + ' chars left for perfect one!</br></span>';
 
-            if(this.state.username.length !== 0 || this.state.name.length !== 0) {
-                btn.disabled = false;
+            if(this.state.username.length === usermin && this.state.name.length === usermin) {
+                this.setState({
+                    button: "isActive"
+                });
+            }else {
+                if(this.state.username.length === 0) {
+                    this.setState({
+                        inputusername: 'isDanger',
+                        button: 'isDisabled'
+                    })
+                }else {
+                    this.setState({
+                        inputusername: 'isSuccess',
+                        button: 'isActive'
+                    })
+                }
+
+                if(this.state.name.length === 0) {
+                    this.setState({
+                        inputname: 'isDanger',
+                        button: 'isDisabled'
+                    })
+                }else {
+                    this.setState({
+                        inputname: 'isSuccess',
+                        button: 'isActive'
+                    })
+                }
             }
 
         } else if (length >= good) {
-
             // Validation output
             validate_field.innerHTML = '<span style="color: #4caf50; font-weight: bold;"><br>Perfect one!</br></span>';
 
-        } else {
+            if(this.state.username.length === usermin && this.state.name.length === usermin) {
+                this.setState({
+                    button: "isActive"
+                });
+            }else {
+                if(this.state.username.length === 0) {
+                    this.setState({
+                        inputusername: 'isDanger',
+                        button: 'isDisabled'
+                    })
+                }else {
+                    this.setState({
+                        inputusername: 'isSuccess',
+                        button: 'isActive'
+                    })
+                }
 
+                if(this.state.name.length === 0) {
+                    this.setState({
+                        inputname: 'isDanger',
+                        button: 'isDisabled'
+                    })
+                }else {
+                    this.setState({
+                        inputname: 'isSuccess',
+                        button: 'isActive'
+                    })
+                }
+            }
+        } else {
             // Validation output
             validate_field.innerHTML = '<span style="color: #f44336; font-weight: bold;">' +
                 '<br>Too weak :( ' + String(minimum - length) + ' left!</br></span>';
-            btn.disabled = true;
+            this.setState({
+                button: "isDisabled"
+            })
         }
     }
 
@@ -285,23 +357,21 @@ class Register extends React.Component {
 
     render() {
         return (
-            <div className="container" id="register">
-                <h1 className="title">Register</h1>
+            <Container>
+                <Title size="is4">Register</Title>
                 <form onSubmit={this.register}>
                     <p className="control-box">
-                        <label className="label">Username:</label>
-                        <input className="input" name="username" onChange={this.validateUsernameOnChange} value={this.state.username}/>
-                        <label className="label">Display name:</label>
-                        <input className="input" name="name" onChange={this.validateUsernameOnChange} value={this.state.name}/>
-                        <label className="label">Password:</label><p/>
-                        <input className="input" name="password" onChange={this.validatePasswordOnChange} value={this.state.password} type="password"/>
-                        <br/>
+                        <Label>Username:</Label>
+                        <Input className="username" onChange={this.validateUsernameOnChange} color={this.state.inputusername}/>
+                        <Label>Display name:</Label>
+                        <Input className="name" onChange={this.validateUsernameOnChange} color={this.state.inputname}/>
+                        <Label>Password:</Label><p/>
+                        <Input className="password" onChange={this.validatePasswordOnChange} type="password">{this.state.password}</Input>
                         <span id="validate"/>
-                        <br/>
-                        <input className="button is-primary" type="submit" value="Submit" id="submitBtn" disabled="true"/>
+                        <Button color="isPrimary" state={this.state.button} type="submit" className="submitBtn">Register</Button>
                     </p>
                 </form>
-            </div>
+            </Container>
         )
     }
 }
