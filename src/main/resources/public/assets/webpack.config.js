@@ -11,11 +11,10 @@ module.exports = {
         path: path.resolve(__dirname, 'dist')
     },
     devtool: 'source-map',
-    externals: {
+    /*externals: {
         "react": "React",
-        "react-dom": "ReactDOM",
-        "re-bulma": "re-bulma"
-    },
+        "react-dom": "ReactDOM"
+    },*/
     module: {
         loaders: [
             {

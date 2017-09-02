@@ -11,6 +11,7 @@
   "dependencies": {
     "babel-standalone": "^6.25.0",
     "bulma": "^0.5.1",
+    "insert-css": "^2.0.0",
     "path": "^0.12.7",
     "re-bulma": "^0.4.5",
     "react": "^15.6.1",
