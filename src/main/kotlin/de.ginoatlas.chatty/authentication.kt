@@ -33,13 +33,15 @@ data class Authentication(private val users: MutableList<User>, private val prot
         // Check password length
         if (password.length < proto.password.minimumLength) {
             proto.responseType = ResponseType.FAILED
-            proto.header.setAdditionalText = "[chatty-service]: Your password needs to be at least ${proto.password.minimumLength} chars long!"
+            proto.header.setAdditionalText = "[chatty-service]: " +
+                    "Your password needs to be at least ${proto.password.minimumLength} chars long!"
             return proto
         }
 
         if (username.length < proto.user.minimumLength || name.length < proto.user.minimumLength) {
             proto.responseType = ResponseType.FAILED
-            proto.header.setAdditionalText = "[chatty-service]: Your username/name needs to be at least ${proto.user.minimumLength} chars long!"
+            proto.header.setAdditionalText = "[chatty-service]: Your username/name needs " +
+                    "to be at least ${proto.user.minimumLength} chars long!"
             return proto
         }
 
@@ -47,22 +49,34 @@ data class Authentication(private val users: MutableList<User>, private val prot
 
         val enc = encrypt(proto)
         val protocol = enc.keys.first()
+
+        protocol.user.username = username
+        protocol.user.name = name
+
         encrypted = enc.values.first()
         if (encrypted != "") {
             if (!isRegistered) {
-                dbRegister(username, name, encrypted)
+                val userID = dbRegister(username, name, encrypted)
+                if(userID != -1) {
+                    protocol.user.token = UUID.randomUUID()
+                    // Set server informations
+                    protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.username} is registered!"
+                    protocol.responseType = ResponseType.SUCCESS
+                    return protocol
+                }else {
+                    // Set server informations
+                    protocol.header.setAdditionalText = "[chatty-service]: " +
+                            "${protocol.user.username} could not being registered!"
+                    protocol.responseType = ResponseType.FAILED
+                    return protocol
+                }
+            } else {
+                protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.username} is already registered!"
+                protocol.responseType = ResponseType.FAILED
+                return protocol
             }
-            protocol.user.token = UUID.randomUUID()
-            // Set user defined properties
-            protocol.user.username = username
-            protocol.user.name = name
-            // Set server informations
-            protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.username} is registered!"
-            protocol.responseType = ResponseType.SUCCESS
-            return protocol
-
         } else {
-            protocol.header.setAdditionalText = "[chatty-service]: could not encrypt password."
+            protocol.header.setAdditionalText = "[chatty-service]: could not encrypt the user!"
             protocol.responseType = ResponseType.FAILED
             return protocol
         }
@@ -81,12 +95,14 @@ data class Authentication(private val users: MutableList<User>, private val prot
             // This might be empty, if the user didn't register in same
             // That's why we get it from database
             protocol.user.name = dbFindNameByUsername(username)
-            protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.username} has been successfully logged in!"
+            protocol.header.setAdditionalText = "[chatty-service]: " +
+                    "${protocol.user.username} has been successfully logged in!"
             protocol
         } else {
             protocol.responseType = ResponseType.FAILED
             protocol.user.username = username
-            protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.username} has been failed to log in! Wrong password?"
+            protocol.header.setAdditionalText = "[chatty-service]: " +
+                    "${protocol.user.username} has been failed to log in! Wrong password?"
             protocol
         }
     }
