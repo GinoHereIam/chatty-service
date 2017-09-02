@@ -1,5 +1,3 @@
-src/main/resources/public/assets/node_modules/
-src/main/resources/public/assets/dist/
 .gradle/
 .idea/
 build/
