@@ -244,12 +244,11 @@ fun Application.module() {
                     println("[chatty-service]: ${protocol.user.username} disconnected")
                 }
             }
-
         }
 
         static {
-            defaultResource("index.html", "public")
-            resources("public")
+            defaultResource("dist/index.html", "public/assets")
+            resources("public/assets/dist")
         }
     }
 }

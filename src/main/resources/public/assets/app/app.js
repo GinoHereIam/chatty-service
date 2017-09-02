@@ -1,5 +1,11 @@
-import * as React from "react";
-import * as ReactDOM from "react-dom";
+// Styles
+import "./style.css";
+import "../node_modules/bulma/css/bulma.css"
+// React
+import * as React from "../node_modules/react";
+import * as ReactDOM from "../node_modules/react-dom";
+// Websocket
+import ReconnectingWebSocket from "./vendor/reconnecting-websocket.min";
 
 // Functions
 function parseCPOW(event) {
