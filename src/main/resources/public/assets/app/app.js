@@ -1,13 +1,17 @@
 // Styles
 import "./style.css";
 import "../node_modules/bulma/css/bulma.css"
-import {Container, Button, Title, Label, Input} from "re-bulma";
+import {
+    Container, Button, Title, Label, Input, Tile, Content, Image, Textarea, Card,
+    CardContent, CardImage, CardHeader, CardHeaderTitle, CardFooter, CardFooterItem
+} from "re-bulma";
 // React
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 // Websocket
 import ReconnectingWebSocket from "./vendor/reconnecting-websocket.min";
 
+// Insert bulma stylesheet
 import insertCss from 'insert-css';
 import css from '../node_modules/re-bulma/build/css';
 try {
@@ -70,15 +74,120 @@ class Chat extends React.Component {
 
         this.state = {
             socket: props.socket,
-            cpow: props.cpow
-        }
+            cpow: props.cpow,
+            notify: '',
+            chat: ''
+        };
+
+        this.openChat = this.openChat.bind(this);
+        this.sendMessage = this.sendMessage.bind(this);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        this.setState({ socket: nextProps.socket });
+    }
+
+    componentDidMount() {
+        // Actual this to access this.setState({})
+        let self = this;
+
+        this.state.socket.onmessage = function(event) {
+            let cpow = parseCPOW(event.data);
+
+            self.setState({
+                cpow: cpow
+            });
+
+            let service_output = cpow.header.additionalText;
+            document.getElementById('service_output').innerHTML += service_output + "<br/>";
+        };
+    }
+
+    openChat(event) {
+        //let targetName = event.target.parentNode.classList[1];
+        let targetName = event.target.name;
+        console.log('Open chat target: ' + targetName);
+
+        // Get messages
+        let messages = document.getElementsByClassName('messages');
+        messages.innerHTML = 'Your last dummy messages from John Doe!'
+    };
+
+    sendMessage(event) {
+
     }
 
     render() {
+        const messages = {
+            background: '#eee',
+            borderRadius: '5px',
+            padding: '1%',
+            height: '100%'
+
+        };
+        const contacts = {
+            background: '#eee',
+            borderRadius: '5px',
+            padding: '2%',
+        };
+
+        const msgbox = {
+            width: '100%',
+            bottom: '0'
+        };
+
         return(
             <div>
-                Hello {this.state.cpow.user.username} to your chat!
-                <Button>Test!</Button>
+                <Tile className="chat" context="isAncestor">
+                    <Tile isVertical size="is10">
+                        <Tile>
+                            <Tile context="isParent">
+                                <Tile context="isChild" style={messages}>
+                                    <Content className="messages"/>
+                                </Tile>
+                            </Tile>
+                        </Tile>
+                        <Tile context="isParent" className="msgbox">
+                            <Textarea style={msgbox}/>
+                        </Tile>
+                    </Tile>
+                    <Tile context="isParent" class="contacts">
+                        <Tile context="isChild" size="is10" style={contacts}>
+                            <Card className="card">
+                                <CardHeader>
+                                    <CardHeaderTitle>John Doe</CardHeaderTitle>
+                                </CardHeader>
+                                <CardImage>
+                                    <Image/>
+                                </CardImage>
+                                <CardContent>
+                                    <Content>Your last dummy messages from John Doe!</Content>
+                                </CardContent>
+                                <CardFooter>
+                                    <CardFooterItem>
+                                        <Button color="isPrimary" onClick={this.openChat}>Open</Button>
+                                    </CardFooterItem>
+                                </CardFooter>
+                            </Card>
+                            <Card className="card">
+                                <CardHeader>
+                                    <CardHeaderTitle>Miles Doe</CardHeaderTitle>
+                                </CardHeader>
+                                <CardImage>
+                                    <Image/>
+                                </CardImage>
+                                <CardContent>
+                                    <Content>Your last dummy messages from Miles Doe!</Content>
+                                </CardContent>
+                                <CardFooter>
+                                    <CardFooterItem>
+                                        <Button color="isPrimary" onClick={this.openChat}>Open</Button>
+                                    </CardFooterItem>
+                                </CardFooter>
+                            </Card>
+                        </Tile>
+                    </Tile>
+                </Tile>
             </div>
         )
     }

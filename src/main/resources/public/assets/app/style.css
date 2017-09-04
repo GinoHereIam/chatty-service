@@ -4,6 +4,9 @@ html, body {
     -moz-background-size: cover;
     -o-background-size: cover;
     background-size: cover;
+
+    margin: 0;
+    padding: 0;
 }
 
 .box {
@@ -12,4 +15,24 @@ html, body {
 
 #service_output_box {
     display: none;
+}
+
+#app {
+    min-height: 100%;
+    max-width: 100%;
+    padding: .5%;
+    margin: 0;
+}
+
+.msgbox {
+    bottom: 0;
+}
+
+.card {
+    margin: 1%;
+}
+
+.contacts {
+    min-height: 100%;
+    bottom: 0
 }
