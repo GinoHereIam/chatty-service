@@ -1,38 +1,31 @@
 html, body {
-    background: url(img/programming.jpg) no-repeat center center fixed;
+    /*background: url(img/programming.jpg) no-repeat center center fixed;*/
+    background-color: #eeeeee;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
     background-size: cover;
 
+    /*
+        No selection
+    */
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+
     margin: 0;
     padding: 0;
+    height: 100%;
+    width: auto;
 }
 
 .box {
     opacity: 0.9;
 }
 
-#service_output_box {
+.serviceOutputBox {
     display: none;
-}
-
-#app {
-    min-height: 100%;
-    max-width: 100%;
-    padding: .5%;
-    margin: 0;
-}
-
-.msgbox {
-    bottom: 0;
-}
-
-.card {
-    margin: 1%;
-}
-
-.contacts {
-    min-height: 100%;
-    bottom: 0
 }

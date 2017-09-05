@@ -33,7 +33,7 @@ data class User(
         // Add more user properties here
         val conn: DefaultWebSocketSession?,
         val sessionID: UUID,
-        val minimumLength: Int = 4
+        val minimumLength: Int = user_minimumLength
 ) {
     // Unique user name | it's for login
     var username: String = ""
