@@ -1,6 +1,7 @@
 const path = require('path');
 const HtmlWPPlugin = require('html-webpack-plugin');
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
+const webpack = require('webpack');
 
 module.exports = {
     entry: {
@@ -11,6 +12,9 @@ module.exports = {
         path: path.resolve(__dirname, 'dist')
     },
     devtool: 'source-map',
+    devServer: {
+        contentBase: './dist',
+    },
     /*externals: {
         "react": "React",
         "react-dom": "ReactDOM"
@@ -37,6 +41,10 @@ module.exports = {
             template: 'template/index.ejs',
             inject: 'body'
         }),
-        new ExtractTextPlugin("style.[hash].css")
+        new ExtractTextPlugin("style.[hash].css"),
+        new webpack.optimize.CommonsChunkPlugin({
+            name: 'main',
+            async: true
+        })
     ]
 };

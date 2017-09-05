@@ -3,7 +3,8 @@ import "./style.css";
 import "../node_modules/bulma/css/bulma.css"
 import {
     Container, Button, Title, Label, Input, Tile, Content, Image, Textarea, Card,
-    CardContent, CardImage, CardHeader, CardHeaderTitle, CardFooter, CardFooterItem
+    CardContent, CardImage, CardHeader, CardHeaderTitle, CardFooter, CardFooterItem, Nav, NavGroup, NavItem, NavToggle,
+    Hero, HeroBody, Subtitle, Section, FormHorizontal, ControlLabel, Group, Box, Notification
 } from "re-bulma";
 // React
 import * as React from 'react';
@@ -118,27 +119,70 @@ class Chat extends React.Component {
     }
 
     render() {
-        const messages = {
-            background: '#eee',
-            borderRadius: '5px',
-            padding: '1%',
-            height: '100%'
-
+        const app = {
+            height: '100%',
+            width: '100%',
+            margin: '0',
+            padding: '0'
         };
+
+        const messages = {
+            //background: '#eee',
+            background: 'white',
+            borderRadius: '5px',
+            padding: '1%'
+        };
+
         const contacts = {
             background: '#eee',
+            //background: 'white',
             borderRadius: '5px',
-            padding: '2%',
+            padding: '2%'
+        };
+
+        const contactCard = {
+            margin: '3% 0',
+            padding: '1% 0'
         };
 
         const msgbox = {
+            width: '100%'
+        };
+
+        const navigation = {
+            top: '0',
+            left: '0',
             width: '100%',
-            bottom: '0'
+            margin: '0',
+            padding: ' .5% 2%'
         };
 
         return(
             <div>
-                <Tile className="chat" context="isAncestor">
+                <Tile className='Navbar' context='isAncestor'>
+                    <Tile isVertical size='is12'>
+                        <Nav hasShadow style={navigation}>
+                            <NavGroup align='left'>
+                                <NavItem>
+                                    Hi {this.state.cpow.user.name}!
+                                </NavItem>
+                            </NavGroup>
+                            <NavGroup align='center'>
+                                <NavItem>
+                                    Chatty!
+                                </NavItem>
+                            </NavGroup>
+                            <NavToggle/>
+                            <NavGroup align='right' isMenu>
+                                <NavItem>
+                                    <Input type='search'/>
+                                    <Button>Logout</Button>
+                                </NavItem>
+                            </NavGroup>
+                        </Nav>
+                    </Tile>
+                </Tile>
+                <Tile className="chat" context="isAncestor" style={app}>
                     <Tile isVertical size="is10">
                         <Tile>
                             <Tile context="isParent">
@@ -151,9 +195,9 @@ class Chat extends React.Component {
                             <Textarea style={msgbox}/>
                         </Tile>
                     </Tile>
-                    <Tile context="isParent" class="contacts">
-                        <Tile context="isChild" size="is10" style={contacts}>
-                            <Card className="card">
+                    <Tile context="isParent">
+                        <Tile context="isChild" size='is10' style={contacts}>
+                            <Card style={contactCard}>
                                 <CardHeader>
                                     <CardHeaderTitle>John Doe</CardHeaderTitle>
                                 </CardHeader>
@@ -169,7 +213,7 @@ class Chat extends React.Component {
                                     </CardFooterItem>
                                 </CardFooter>
                             </Card>
-                            <Card className="card">
+                            <Card style={contactCard}>
                                 <CardHeader>
                                     <CardHeaderTitle>Miles Doe</CardHeaderTitle>
                                 </CardHeader>
@@ -201,7 +245,8 @@ class Login extends React.Component {
             socket: props.socket,
             username: '',
             password: '',
-            cpow: ''
+            cpow: '',
+            serviceOutput: props.serviceOutput
         };
         this.onChange = this.onChange.bind(this);
         this.login = this.login.bind(this);
@@ -241,7 +286,9 @@ class Login extends React.Component {
             });
 
             let service_output = cpow.header.additionalText;
-            document.getElementById('service_output').innerHTML += service_output + "<br/>";
+            self.setState({
+                serviceOutput: service_output
+            });
 
             if (self.state.cpow.responseType === "SUCCESS" && self.state.cpow.actionType === "USER_LOGIN_ACCOUNT") {
                 let body = document.body;
@@ -266,18 +313,20 @@ class Login extends React.Component {
         };
 
         return (
-            <Container>
-                <Title size="is4">Login</Title>
-                <form onSubmit={this.login}>
-                    <p className="control-box">
-                        <Label>Username:</Label>
-                        <Input className="username" onChange={this.onChange}/>
-                        <Label>Password:</Label><p/>
-                        <Input className="password" onChange={this.onChange} type="password"/>
-                        <Button color="isPrimary" type="submit">Login</Button>
-                    </p>
-                </form>
-            </Container>
+            <div>
+                <Container>
+                    <Title size="is4">Login</Title>
+                    <form onSubmit={this.login}>
+                        <p className="control-box">
+                            <Label>Username:</Label>
+                            <Input className="username" onChange={this.onChange}/>
+                            <Label>Password:</Label><p/>
+                            <Input className="password" onChange={this.onChange} type="password"/>
+                            <Button color="isPrimary" type="submit">Login</Button>
+                        </p>
+                    </form>
+                </Container>
+            </div>
         )
     };
 }
@@ -294,7 +343,8 @@ class Register extends React.Component {
             button: 'isDisabled',
             inputname: '',
             inputusername: '',
-            cpow: null
+            cpow: null,
+            serviceOutput: props.serviceOutput
         };
 
         this.validatePasswordOnChange = this.validatePasswordOnChange.bind(this);
@@ -303,7 +353,10 @@ class Register extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        this.setState({ socket: nextProps.socket });
+        this.setState({
+            socket: nextProps.socket,
+            serviceOutput: nextProps.serviceOutput
+        });
     }
 
     componentDidMount() {
@@ -318,7 +371,10 @@ class Register extends React.Component {
             });
 
             let service_output = cpow.header.additionalText;
-            document.getElementById('service_output').innerHTML += service_output + "<br/>";
+            self.setState({
+                serviceOutput: service_output
+            });
+
         };
     }
 
@@ -466,21 +522,30 @@ class Register extends React.Component {
 
     render() {
         return (
-            <Container>
-                <Title size="is4">Register</Title>
-                <form onSubmit={this.register}>
-                    <p className="control-box">
+            <div>
+                <Container>
+                    <Title size="is4">Register</Title>
+                    <form onSubmit={this.register}>
                         <Label>Username:</Label>
-                        <Input className="username" onChange={this.validateUsernameOnChange} color={this.state.inputusername}/>
+                        <Input className="username"
+                               onChange={this.validateUsernameOnChange}
+                               color={this.state.inputusername}/>
                         <Label>Display name:</Label>
-                        <Input className="name" onChange={this.validateUsernameOnChange} color={this.state.inputname}/>
+                        <Input className="name"
+                               onChange={this.validateUsernameOnChange}
+                               color={this.state.inputname}/>
                         <Label>Password:</Label><p/>
-                        <Input className="password" onChange={this.validatePasswordOnChange} type="password">{this.state.password}</Input>
+                        <Input className="password"
+                               onChange={this.validatePasswordOnChange}
+                               type="password">{this.state.password}</Input>
                         <span id="validate"/>
-                        <Button color="isPrimary" state={this.state.button} type="submit" className="submitBtn">Register</Button>
-                    </p>
-                </form>
-            </Container>
+                        <Button color="isPrimary"
+                                state={this.state.button}
+                                type="submit"
+                                className="submitBtn">Register</Button>
+                    </form>
+                </Container>
+            </div>
         )
     }
 }
@@ -490,11 +555,9 @@ export class Auth extends React.Component {
         super(props);
 
         this.state = {
-            socket: new ReconnectingWebSocket(props.address)
-
+            socket: new ReconnectingWebSocket(props.address),
+            serviceOutput: ''
         };
-
-        //this.handleChange = this.handleChange.bind(this);
     }
 
     shouldComponentUpdate() {
@@ -514,12 +577,14 @@ export class Auth extends React.Component {
                 "content": "",
                 "token": ""
             });
-            // console.log('open:', event);
+            //console.log('open:', event);
             self.state.socket.send(message)
-        };
+        }
 
         this.state.socket.onclose = function () {
-            document.getElementById('service_output').innerHTML += "[chatty-client]: Connection is closed by service." + "<br/>";
+            self.setState({
+                serviceOutput: "[chatty-client]: Connection is closed by service."
+            });
         };
 
         this.state.socket.onmessage = function(event) {
@@ -530,72 +595,131 @@ export class Auth extends React.Component {
             });
 
             let service_output = cpow.header.additionalText;
-            document.getElementById('service_output').innerHTML += service_output + "<br/>";
+            self.setState({
+                serviceOutput: service_output
+            })
         };
     }
-
-    /*
-    handleChange = function(event) {
-        event.preventDefault();
-
-        let address = document.getElementById('ws').value;
-        document.getElementById('service_output').innerHTML += "[chatty-client]: Create new service connection." + "<br/>";
-
-        this.state.socket.close();
-        document.getElementById('service_output').innerHTML += "[chatty-client]: Closed default connection" + "<br/>";
-
-        let socket = ReconnectingWebSocket(address);
-        this.setState({
-            socket: socket
-        })
-    };
-    */
 
     render() {
         return (
             <span>
-                <div className="box">
+                <Hero color='isPrimary' size='isMedium'>
+                    <HeroBody>
+                        <Container>
+                            <Title>Chatty</Title>
+                            <Subtitle>Your own communication channel! Your own cloud chat service!</Subtitle>
+                        </Container>
+                    </HeroBody>
+                </Hero>
+                <Box>
                     <Login socket={this.state.socket} />
-                </div>
-                <div className="box">
-                    <Register socket={this.state.socket} />
-                </div>
+                </Box>
+                <Box>
+                    <Register socket={this.state.socket}/>
+                </Box>
+                <Box>
+                    <Content>{this.state.serviceOutput}</Content>
+                </Box>
             </span>
         );
     }
 }
 
-let _socket;
-window.onAddWS = function () {
-    // Get service first
-    let address = document.getElementById('ws_input');
-    document.getElementById('service_output_box').style.display = "block";
+export class InitApp extends React.Component {
+    constructor(props) {
+        super(props);
 
+        this.state = {
+            socket: null,
+            servicePath: '',
+            buttonEnter: 'isDisabled',
+            buttonTest: 'isDisabled',
+            serviceInputStyle: {
+                display: 'block'
+            }
+        };
 
-    let service = document.getElementById('ws');
-    if(_socket !== undefined) _socket.close();
-    setTimeout(service.style.display = 'none', 3000);
+        this.addServiceAddress = this.addServiceAddress.bind(this);
+        this.addInternally = this.addInternally.bind(this);
+        this.testConnection = this.testConnection.bind(this);
+    }
 
-    ReactDOM.render(
-        <Auth address={address.value}/>,
-        document.getElementById('app')
-    );
-};
+    addServiceAddress(event) {
+        if(this.state.socket !== null) {
+            this.state.socket.close();
+            this.setState({
+                serviceInputStyle: 'hidden'
+            });
+        }
 
-window.checkInput = function () {
-    let _socket;
-    let btn = document.getElementById('addServiceBtn');
-
-    // Get service first
-    let address = document.getElementById('ws_input').value;
-    // Check for valid websocket connection
-    // if the connection opens, it must work!
-    _socket = new WebSocket(address);
-    _socket.onopen = function () {
-        btn.disabled = false;
+        ReactDOM.render(
+            <Auth address={this.state.servicePath}/>,
+            document.getElementById('app')
+        );
     };
 
-    _socket.onerror = function () {
-        btn.disabled = true;
+    testConnection() {
+        let _socket = new WebSocket(this.state.servicePath);
+        this.setState({
+            socket:  _socket
+        });
+
+        let self = this;
+        _socket.onopen = function () {
+            self.setState({
+                buttonEnter: 'isActive',
+                socket: _socket
+            })
+        };
+
+        _socket.onerror = function () {
+            self.setState({
+                buttonEnter: 'isDisabled'
+            })
+        };
+    }
+
+    addInternally(event) {
+        let value = event.target.value;
+        // ws://
+        if(value.length > 5) {
+            this.setState({
+                buttonTest: 'isActive',
+                servicePath: value
+            });
+        }
     };
-};
+
+    render() {
+        return (
+            <div>
+                <Hero color='isPrimary' size='isMedium'>
+                    <HeroBody>
+                        <Container>
+                            <Title>Chatty</Title>
+                            <Subtitle>Your own communication channel! Your own cloud chat service!</Subtitle>
+                        </Container>
+                    </HeroBody>
+                </Hero>
+                <Section style={this.state.serviceInputStyle}>
+                    <Title>Service</Title>
+                    <FormHorizontal>
+                        <ControlLabel>Address</ControlLabel>
+                        <Group>
+                            <Input onChange={this.addInternally}/>
+                            <Button color='isPrimary' state={this.state.buttonTest} onClick={this.testConnection}>Test connection!</Button>
+                            <Button color='isPrimary' state={this.state.buttonEnter}
+                                    onClick={this.addServiceAddress}>Enter</Button>
+                        </Group>
+                    </FormHorizontal>
+                </Section>
+            </div>
+        );
+    }
+}
+
+ReactDOM.render(
+    <InitApp/>,
+    document.getElementById('app')
+);
