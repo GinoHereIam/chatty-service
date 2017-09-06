@@ -11,9 +11,9 @@ install:
 jobs:
     include:
         - stage: ChattyWebclient
-            script: 
-                - yarn start
+          script: 
+            - yarn start
         - stage: ChatyService
-            script:
-                - cd ${SOURCE_DIR}
-                - ./gradlew build
+          script:
+            - cd ${SOURCE_DIR}
+            - ./gradlew build
