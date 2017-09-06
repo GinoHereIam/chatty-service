@@ -10,10 +10,10 @@ install:
     - sudo apt install -y groovy
 jobs:
     include:
-        stage: ChattyWebclient
-        script: 
-            - yarn start
-        stage: ChatyService
-        script:
-            - cd ${SOURCE_DIR}
-            - ./gradlew build
+        - stage: ChattyWebclient
+            script: 
+                - yarn start
+        - stage: ChatyService
+            script:
+                - cd ${SOURCE_DIR}
+                - ./gradlew build
