@@ -12,7 +12,4 @@ jobs:
           script: 
             - yarn start
         - stage: ChatyService
-          install:
-            - sudo apt install -y groovy
-          script:
-            - ./gradlew build
+          language: java
