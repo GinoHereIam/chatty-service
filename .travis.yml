@@ -4,6 +4,7 @@ node_js:
     - "node"
 before_install:
     - export SOURCE_DIR=$(pwd)
+    - cd src/main/resources/public/assets
 install: 
     - yarn
     - sudo apt install -y groovy
@@ -11,7 +12,6 @@ jobs:
     include:
         stage: ChattyWebclient
         script: 
-            - cd src/main/resources/public/assets
             - yarn start
         stage: ChatyService
         script:
