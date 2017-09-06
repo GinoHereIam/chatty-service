@@ -6,7 +6,7 @@ before_install:
     - export SOURCE_DIR=$(pwd)
 install: 
     - yarn
-    - sudo apt install -y groovy2
+    - sudo apt install -y groovy
 jobs:
     include:
         stage: ChattyWebclient
