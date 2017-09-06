@@ -19,13 +19,9 @@ html, body {
     margin: 0;
     padding: 0;
     height: 100%;
-    width: auto;
+    width: 100%;
 }
 
-.box {
-    opacity: 0.9;
-}
-
-.serviceOutputBox {
-    display: none;
+.inlineIcon {
+    line-height: 40px;
 }

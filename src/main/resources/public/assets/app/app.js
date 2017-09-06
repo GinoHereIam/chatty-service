@@ -1,4 +1,5 @@
 // Styles
+import "./vendor/font-awesome/css/font-awesome.min.css"
 import "./style.css";
 import "../node_modules/bulma/css/bulma.css"
 import {
@@ -11,7 +12,6 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 // Websocket
 import ReconnectingWebSocket from "./vendor/reconnecting-websocket.min";
-
 // Insert bulma stylesheet
 import insertCss from 'insert-css';
 import css from '../node_modules/re-bulma/build/css';
@@ -22,39 +22,39 @@ try {
 // Functions
 function parseCPOW(event) {
     // Expect server event data
-    let cpow = JSON.parse(event);
+    let CPOW = JSON.parse(event);
 
     // DEBUG
-    // console.log(cpow);
+    // console.log(CPOW);
 
-    const version = cpow[0].version;
-    const actionType = cpow[1].actionType;
+    const version = CPOW[0].version;
+    const actionType = CPOW[1].actionType;
     const message = {
-        timestamp: cpow[2].message[1],
-        content: cpow[2].message[0]
+        timestamp: CPOW[2].message[1],
+        content: CPOW[2].message[0]
     };
 
     const header = {
-        additionalText: cpow[3].header[0].additionalText
+        additionalText: CPOW[3].header[0].additionalText
     };
 
-    const responseType = cpow[4].responseType;
+    const responseType = CPOW[4].responseType;
     const user = {
-        sessionID: cpow[5].user[0].sessionID,
-        username: cpow[5].user[1].username,
-        name: cpow[5].user[2].name,
-        token: cpow[5].user[3].token,
-        minimumLength: cpow[5].user[4].minimumLength
+        sessionID: CPOW[5].user[0].sessionID,
+        username: CPOW[5].user[1].username,
+        name: CPOW[5].user[2].name,
+        token: CPOW[5].user[3].token,
+        minimumLength: CPOW[5].user[4].minimumLength
     };
 
     // CPOW[6] doesn't matter for now
 
     const chats = {
-        chatIDs: cpow[7].chats[0].chatIDs
+        chatIDs: CPOW[7].chats[0].chatIDs
     };
 
     const password = {
-        minimumLength: cpow[8].password[0].minimumLength
+        minimumLength: CPOW[8].password[0].minimumLength
     };
 
     return {
@@ -75,39 +75,30 @@ class Chat extends React.Component {
 
         this.state = {
             socket: props.socket,
-            cpow: props.cpow,
+            CPOW: props.CPOW,
             notify: '',
             chat: ''
         };
 
         this.openChat = this.openChat.bind(this);
+        this.logout = this.logout.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
     }
 
-    componentWillReceiveProps(nextProps) {
-        this.setState({ socket: nextProps.socket });
-    }
-
-    componentDidMount() {
-        // Actual this to access this.setState({})
-        let self = this;
-
-        this.state.socket.onmessage = function(event) {
-            let cpow = parseCPOW(event.data);
-
-            self.setState({
-                cpow: cpow
-            });
-
-            let service_output = cpow.header.additionalText;
-            document.getElementById('service_output').innerHTML += service_output + "<br/>";
+    logout() {
+        let CPOW = {
+            actionType: 'USER_DISCONNECT'
         };
+
+        let serialized = JSON.stringify(CPOW);
+        console.log(serialized);
+        this.state.socket.send(serialized);
     }
 
     openChat(event) {
         //let targetName = event.target.parentNode.classList[1];
-        let targetName = event.target.name;
-        console.log('Open chat target: ' + targetName);
+        //let targetName = event.target.name;
+        //console.log('Open chat target: ' + targetName);
 
         // Get messages
         let messages = document.getElementsByClassName('messages');
@@ -119,6 +110,28 @@ class Chat extends React.Component {
     }
 
     render() {
+        // Actual this to access this.setState({})
+        let self = this;
+
+        this.state.socket.onmessage = function(event) {
+            let CPOW = parseCPOW(event.data);
+
+            console.log(CPOW);
+
+            self.setState({
+                CPOW: CPOW
+            });
+
+            let service_output = CPOW.header.additionalText;
+            console.log(service_output);
+            //document.getElementById('service_output').innerHTML += service_output + "<br/>";
+
+            if(CPOW.responseType === 'SUCCESS' && CPOW.actionType === 'USER_DISCONNECT') {
+                // Redirect to start page
+                window.location.replace('/');
+            }
+        };
+
         const app = {
             height: '100%',
             width: '100%',
@@ -142,7 +155,8 @@ class Chat extends React.Component {
 
         const contactCard = {
             margin: '3% 0',
-            padding: '1% 0'
+            padding: '1% 0',
+            borderRadius: '5px'
         };
 
         const msgbox = {
@@ -164,19 +178,23 @@ class Chat extends React.Component {
                         <Nav hasShadow style={navigation}>
                             <NavGroup align='left'>
                                 <NavItem>
-                                    Hi {this.state.cpow.user.name}!
+                                    <strong>Hi {this.state.CPOW.user.name}!</strong>
                                 </NavItem>
                             </NavGroup>
                             <NavGroup align='center'>
                                 <NavItem>
-                                    Chatty!
+                                    <Title>Your Chatty!</Title>
                                 </NavItem>
                             </NavGroup>
                             <NavToggle/>
                             <NavGroup align='right' isMenu>
                                 <NavItem>
-                                    <Input type='search'/>
-                                    <Button>Logout</Button>
+                                    <Input type='search' placeholder='User search ...'/>
+                                </NavItem>
+                                <NavItem>
+                                    <Button color='isPrimary' onClick={this.logout}>
+                                        <i className='fa fa-sign-out' aria-hidden='true'>Sign out</i>
+                                    </Button>
                                 </NavItem>
                             </NavGroup>
                         </Nav>
@@ -245,15 +263,11 @@ class Login extends React.Component {
             socket: props.socket,
             username: '',
             password: '',
-            cpow: '',
+            CPOW: '',
             serviceOutput: props.serviceOutput
         };
         this.onChange = this.onChange.bind(this);
         this.login = this.login.bind(this);
-    }
-
-    componentWillReceiveProps(nextProps) {
-        this.setState({ socket: nextProps.socket });
     }
 
     onChange(event) {
@@ -279,18 +293,18 @@ class Login extends React.Component {
     render() {
         let self = this;
         this.state.socket.onmessage = function(event) {
-            let cpow = parseCPOW(event.data);
+            let CPOW = parseCPOW(event.data);
 
             self.setState({
-                cpow: cpow
+                CPOW: CPOW
             });
 
-            let service_output = cpow.header.additionalText;
+            let service_output = CPOW.header.additionalText;
             self.setState({
                 serviceOutput: service_output
             });
 
-            if (self.state.cpow.responseType === "SUCCESS" && self.state.cpow.actionType === "USER_LOGIN_ACCOUNT") {
+            if (self.state.CPOW.responseType === "SUCCESS" && self.state.CPOW.actionType === "USER_LOGIN_ACCOUNT") {
                 let body = document.body;
 
                 // Remove Everything!
@@ -306,7 +320,7 @@ class Login extends React.Component {
 
                 // Render chat
                 ReactDOM.render(
-                    <Chat socket={self.state.socket} cpow={self.state.cpow} />,
+                    <Chat socket={self.state.socket} CPOW={self.state.CPOW} />,
                     document.getElementById('app')
                 )
             }
@@ -317,13 +331,11 @@ class Login extends React.Component {
                 <Container>
                     <Title size="is4">Login</Title>
                     <form onSubmit={this.login}>
-                        <p className="control-box">
-                            <Label>Username:</Label>
-                            <Input className="username" onChange={this.onChange}/>
-                            <Label>Password:</Label><p/>
-                            <Input className="password" onChange={this.onChange} type="password"/>
-                            <Button color="isPrimary" type="submit">Login</Button>
-                        </p>
+                        <Label>Username:</Label>
+                        <Input className="username" color='isInfo' onChange={this.onChange}/>
+                        <Label>Password:</Label>
+                        <Input className="password" color='isInfo' onChange={this.onChange} type="password"/>
+                        <Button color="isPrimary" type="submit">Login</Button>
                     </form>
                 </Container>
             </div>
@@ -341,9 +353,9 @@ class Register extends React.Component {
             name: '',
             password: '',
             button: 'isDisabled',
-            inputname: '',
-            inputusername: '',
-            cpow: null,
+            inputname: 'isInfo',
+            inputusername: 'isInfo',
+            CPOW: null,
             serviceOutput: props.serviceOutput
         };
 
@@ -364,13 +376,13 @@ class Register extends React.Component {
         let self = this;
 
         this.state.socket.onmessage = function(event) {
-            let cpow = parseCPOW(event.data);
+            let CPOW = parseCPOW(event.data);
 
             self.setState({
-                cpow: cpow
+                CPOW: CPOW
             });
 
-            let service_output = cpow.header.additionalText;
+            let service_output = CPOW.header.additionalText;
             self.setState({
                 serviceOutput: service_output
             });
@@ -387,13 +399,13 @@ class Register extends React.Component {
             [targetName]: event.target.value
         });
 
-        if (length >= this.state.cpow.user.minimumLength) {
+        if (length >= this.state.CPOW.user.minimumLength) {
 
             // Validation output
             validate_field.innerHTML = '<span style="color: #4caf50; font-weight: bold;">' +
                 '<br>Great name! ' + event.target.value + '</br></span>';
 
-            if(this.state.password.length === this.state.cpow.password.minimumLength) {
+            if(this.state.password.length === this.state.CPOW.password.minimumLength) {
                 this.setState({
                     button: "isActive"
                 })
@@ -422,8 +434,8 @@ class Register extends React.Component {
         let validate_field = document.getElementById('validate');
 
         let good = 12;
-        let minimum = this.state.cpow.password.minimumLength;
-        let usermin = this.state.cpow.user.minimumLength;
+        let minimum = this.state.CPOW.password.minimumLength;
+        let usermin = this.state.CPOW.user.minimumLength;
 
         if (length >= minimum && length < good) {
 
@@ -536,10 +548,11 @@ class Register extends React.Component {
                                color={this.state.inputname}/>
                         <Label>Password:</Label><p/>
                         <Input className="password"
+                               color="isPrimary"
                                onChange={this.validatePasswordOnChange}
                                type="password">{this.state.password}</Input>
                         <span id="validate"/>
-                        <Button color="isPrimary"
+                        <Button color="isInfo"
                                 state={this.state.button}
                                 type="submit"
                                 className="submitBtn">Register</Button>
@@ -555,19 +568,16 @@ export class Auth extends React.Component {
         super(props);
 
         this.state = {
-            socket: new ReconnectingWebSocket(props.address),
+            socket: new ReconnectingWebSocket(props.address, null, {automaticOpen: false}),
             serviceOutput: ''
         };
-    }
-
-    shouldComponentUpdate() {
-        return true;
     }
 
     componentWillMount() {
         // Actual this to access this.setState({})
         let self = this;
 
+        this.state.socket.open();
         this.state.socket.onopen = function (event) {
             let message = JSON.stringify({
                 "actionType": "USER_CONNECT",
@@ -579,7 +589,7 @@ export class Auth extends React.Component {
             });
             //console.log('open:', event);
             self.state.socket.send(message)
-        }
+        };
 
         this.state.socket.onclose = function () {
             self.setState({
@@ -588,13 +598,13 @@ export class Auth extends React.Component {
         };
 
         this.state.socket.onmessage = function(event) {
-            let cpow = parseCPOW(event.data);
+            let CPOW = parseCPOW(event.data);
 
             self.setState({
-                cpow: cpow
+                CPOW: CPOW
             });
 
-            let service_output = cpow.header.additionalText;
+            let service_output = CPOW.header.additionalText;
             self.setState({
                 serviceOutput: service_output
             })
@@ -618,9 +628,6 @@ export class Auth extends React.Component {
                 <Box>
                     <Register socket={this.state.socket}/>
                 </Box>
-                <Box>
-                    <Content>{this.state.serviceOutput}</Content>
-                </Box>
             </span>
         );
     }
@@ -637,7 +644,8 @@ export class InitApp extends React.Component {
             buttonTest: 'isDisabled',
             serviceInputStyle: {
                 display: 'block'
-            }
+            },
+            validateService: ''
         };
 
         this.addServiceAddress = this.addServiceAddress.bind(this);
@@ -660,22 +668,45 @@ export class InitApp extends React.Component {
     };
 
     testConnection() {
-        let _socket = new WebSocket(this.state.servicePath);
+        let self = this;
+        let _socket = null;
+        try {
+            _socket = new WebSocket(this.state.servicePath);
+        }catch(err) {
+            this.setState({
+                buttonEnter: 'isDisabled',
+                buttonTest: 'isDisabled',
+                validateService: 'This seems not to be a valid service! :('
+            })
+        }
+
         this.setState({
             socket:  _socket
         });
 
-        let self = this;
         _socket.onopen = function () {
-            self.setState({
-                buttonEnter: 'isActive',
-                socket: _socket
-            })
+            let message = JSON.stringify({
+                "actionType": "USER_CONNECT"
+            });
+            //console.log('open:', event);
+            self.state.socket.send(message)
+        };
+
+        _socket.onmessage = function (event) {
+            let CPOW = parseCPOW(event.data);
+            if(CPOW) {
+                self.setState({
+                    buttonEnter: 'isActive',
+                    socket: _socket,
+                    validateService: 'Nice! It is a valid service! :)'
+                })
+            }
         };
 
         _socket.onerror = function () {
             self.setState({
-                buttonEnter: 'isDisabled'
+                buttonEnter: 'isDisabled',
+                validateService: 'This seems not to be a valid service! :('
             })
         };
     }
@@ -686,6 +717,11 @@ export class InitApp extends React.Component {
         if(value.length > 5) {
             this.setState({
                 buttonTest: 'isActive',
+                servicePath: value
+            });
+        }else {
+            this.setState({
+                buttonTest: 'isDisabled',
                 servicePath: value
             });
         }
@@ -702,17 +738,20 @@ export class InitApp extends React.Component {
                         </Container>
                     </HeroBody>
                 </Hero>
-                <Section style={this.state.serviceInputStyle}>
-                    <Title>Service</Title>
-                    <FormHorizontal>
-                        <ControlLabel>Address</ControlLabel>
+                <Section hasTextCentered isFluid style={this.state.serviceInputStyle}>
+                    <Container>
+                        <Title>Service Address</Title>
                         <Group>
-                            <Input onChange={this.addInternally}/>
-                            <Button color='isPrimary' state={this.state.buttonTest} onClick={this.testConnection}>Test connection!</Button>
+                            <Input type='text' onChange={this.addInternally}
+                                   placeholder='ws://localhost:8080/chatty' />
+                            <Button color='isPrimary' state={this.state.buttonTest} onClick={this.testConnection}>
+                                Verification
+                            </Button>
                             <Button color='isPrimary' state={this.state.buttonEnter}
                                     onClick={this.addServiceAddress}>Enter</Button>
                         </Group>
-                    </FormHorizontal>
+                        <span>{this.state.validateService}</span>
+                    </Container>
                 </Section>
             </div>
         );
