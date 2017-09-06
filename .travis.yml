@@ -13,3 +13,5 @@ jobs:
             - yarn start
         - stage: ChatyService
           language: java
+          script:
+            - ./gradlew build
