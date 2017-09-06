@@ -230,7 +230,7 @@ suspend fun parseCPOW(protocol: CPoW): JsonArray<Any?> {
     }
 
     // TODO just for debugging
-    // println(cpow.toJsonString(true))
+    // println(CPOW.toJsonString(true))
 
     return cpow
 }

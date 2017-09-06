@@ -99,13 +99,15 @@ fun Application.module() {
 
                         val stringBuilder = StringBuilder(message)
                         val cpow = parser.parse(stringBuilder) as JsonObject
-
                         try {
                             // Get message
                             val actionType: ActionType = ActionType.valueOf(cpow["actionType"] as String)
                             val timestamp: DateTime = DateTime.now()
-                            val content: String = cpow["content"] as String
-                            val message = Message(timestamp, content)
+
+                            var content = ""
+                            if (cpow["content"] !== null) {
+                                content = cpow["content"] as String
+                            }
 
                             /*
                             * FIXME probably we should move it to the action where the token is necessary like
@@ -120,10 +122,10 @@ fun Application.module() {
                             * + USER_DELETE_ACCOUNT
                             */
 
-                            // val token: UUID = if (cpow["token"] == "") UUID.fromString("00000000-0000-0000-0000-000000000000") else UUID.fromString(cpow["token"] as String)
+                            // val token: UUID = if (CPOW["token"] == "") UUID.fromString("00000000-0000-0000-0000-000000000000") else UUID.fromString(CPOW["token"] as String)
                             // user.token = token
 
-                            protocol.message = message
+                            protocol.message = Message(timestamp, content)
                             protocol.contacts = mutableListOf()
                             protocol.chats = mutableListOf()
                             protocol.actionType = actionType
@@ -145,7 +147,7 @@ fun Application.module() {
                                         protocol.header.setAdditionalText = "You are offline now!"
                                         val response = parseCPOW(protocol).toJsonString()
                                         session.send(Frame.Text(response))
-                                        close(CloseReason(CloseReason.Codes.GOING_AWAY, "client left"))
+                                        close(CloseReason(CloseReason.Codes.NORMAL, "client left"))
                                     }
                                 }
 
