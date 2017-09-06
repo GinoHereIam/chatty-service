@@ -1,10 +1,10 @@
 sudo: required
-language: node_js
-node_js:
-    - "node"
 jobs:
     include:
         - stage: ChattyWebclient
+          language: node_js
+          node_js:
+            - "node"
           before_install:
             - cd src/main/resources/public/assets
           install:
