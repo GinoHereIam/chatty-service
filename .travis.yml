@@ -4,5 +4,5 @@ node_js:
     - "8"
 before_script:
     - cd src/main/resources/public/assets
-install: yarn install
+install: yarn
 script: yarn start
