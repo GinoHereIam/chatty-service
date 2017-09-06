@@ -2,18 +2,17 @@ sudo: required
 language: node_js
 node_js:
     - "node"
-before_install:
-    - export SOURCE_DIR=$(pwd)
-    - cd src/main/resources/public/assets
-install: 
-    - yarn
-    - sudo apt install -y groovy
 jobs:
     include:
         - stage: ChattyWebclient
+          before_install:
+            - cd src/main/resources/public/assets
+          install:
+            - yarn
           script: 
             - yarn start
         - stage: ChatyService
+          install:
+            - sudo apt install -y groovy
           script:
-            - cd ${SOURCE_DIR}
             - ./gradlew build
