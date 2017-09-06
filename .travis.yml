@@ -9,7 +9,7 @@ jobs:
           install:
             - yarn
           script: 
-            - yarn start
+            - yarn build
         - stage: Chattyservice
           language: java
           script:
