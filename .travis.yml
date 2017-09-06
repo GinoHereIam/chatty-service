@@ -1,6 +1,6 @@
 jobs:
     include:
-        - stage: ChattyWebclient
+        - stage: Chattywebclient
           language: node_js
           node_js:
             - "node"
@@ -10,7 +10,7 @@ jobs:
             - yarn
           script: 
             - yarn start
-        - stage: ChatyService
+        - stage: Chattyservice
           language: java
           script:
             - ./gradlew build
