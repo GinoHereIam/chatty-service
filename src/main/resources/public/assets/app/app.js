@@ -192,9 +192,7 @@ class Chat extends React.Component {
                                     <Input type='search' placeholder='User search ...'/>
                                 </NavItem>
                                 <NavItem>
-                                    <Button color='isPrimary' onClick={this.logout}>
-                                        <i className='fa fa-sign-out' aria-hidden='true'>Sign out</i>
-                                    </Button>
+                                    <Button color='isPrimary' onClick={this.logout}></Button>
                                 </NavItem>
                             </NavGroup>
                         </Nav>
