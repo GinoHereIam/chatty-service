@@ -4,7 +4,7 @@ import "../node_modules/bulma/css/bulma.css"
 import {
     Container, Button, Title, Label, Input, Tile, Content, Image, Textarea, Card,
     CardContent, CardImage, CardHeader, CardHeaderTitle, CardFooter, CardFooterItem, Nav, NavGroup, NavItem, NavToggle,
-    Hero, HeroBody, Subtitle, Section, FormHorizontal, ControlLabel, Group, Box, Notification
+    Hero, HeroBody, Subtitle, Section, FormHorizontal, ControlLabel, Group, Box, Notification, Modal
 } from "re-bulma";
 // React
 import * as React from 'react';
@@ -26,7 +26,14 @@ function parseCPOW(event) {
     // DEBUG
     // console.log(CPOW);
 
-    const version = CPOW[0].version;
+    const version = {
+        author: CPOW[0].version[0].author,
+        service: CPOW[0].version[1].service,
+        client: CPOW[0].version[2].client,
+        homepage: CPOW[0].version[3].homepage,
+        license: CPOW[0].version[4].license,
+        thirdParties: CPOW[0].version[5].thirdParties
+    };
     const actionType = CPOW[1].actionType;
     const message = {
         timestamp: CPOW[2].message[1],
@@ -79,6 +86,8 @@ class Chat extends React.Component {
             chat: ''
         };
 
+        console.log(this.state.CPOW);
+
         this.openChat = this.openChat.bind(this);
         this.logout = this.logout.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
@@ -115,7 +124,7 @@ class Chat extends React.Component {
         this.state.socket.onmessage = function(event) {
             let CPOW = parseCPOW(event.data);
 
-            console.log(CPOW);
+            //console.log(CPOW);
 
             self.setState({
                 CPOW: CPOW
@@ -182,7 +191,7 @@ class Chat extends React.Component {
                             </NavGroup>
                             <NavGroup align='center'>
                                 <NavItem>
-                                    <Title>Your Chatty!</Title>
+                                    <Button color='isInfo' onClick={() => this.setState({ showAbout: true })}>Your Chatty!</Button>
                                 </NavItem>
                             </NavGroup>
                             <NavToggle/>
@@ -249,6 +258,20 @@ class Chat extends React.Component {
                         </Tile>
                     </Tile>
                 </Tile>
+                <Modal
+                    type="card"
+                    headerContent="Chatty information"
+                    isActive={this.state.showAbout}
+                    onCloseRequest={() => this.setState({ showAbout: false })}>
+                    <Content>
+                        <b>Author</b>: {this.state.CPOW.version.author} <br/>
+                        <b>Service version</b>: {this.state.CPOW.version.service} <br/>
+                        <b>Client version</b>: {this.state.CPOW.version.client} <br/>
+                        <b>Homepage</b>: {this.state.CPOW.version.homepage} <br/>
+                        <b>3rdParties</b>: {this.state.CPOW.version.thirdParties} <br/>
+                        <b>License</b>: {this.state.CPOW.version.license} <br/>
+                    </Content>
+                </Modal>
             </div>
         )
     }

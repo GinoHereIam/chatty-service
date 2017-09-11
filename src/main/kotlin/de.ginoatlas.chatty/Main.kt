@@ -63,6 +63,7 @@ fun Application.module() {
                 return@webSocket
             }
 
+            val version = Version()
             val password = Password()
             val header = Header()
             val action: ActionType = ActionType.NONE
@@ -70,6 +71,8 @@ fun Application.module() {
             val user = User(this, id)
 
             var protocol: CPoW = CPoW(
+                    // Contains information about version and so on
+                    version = version,
                     // Each user is create by first connection
                     participant = user,
                     // Set password attributes here
