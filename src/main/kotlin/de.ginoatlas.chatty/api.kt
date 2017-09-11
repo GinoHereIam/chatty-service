@@ -102,14 +102,23 @@ data class Header(
         }
 }
 
+data class Version(
+        val author: String = "GinoHereIam",
+        val service: String = "Alpha",
+        val client: String = "0.0.0",
+        val license: String = "MIT License",
+        val homepage: String = "https://chatty.gino-atlas.de",
+        val thirdParties: String = "ReactJS & Google material icons"
+)
+
 data class CPoW(
         val action: ActionType,
         val response: ResponseType,
         val participant: User,
         val password: Password,
         val header: Header,
-        // For verification compatibility?
-        val version: String = "v1") {
+        // TODO For verification compatibility
+        val version: Version) {
 
     // Getter / Setter
     var actionType: ActionType = action
@@ -144,11 +153,30 @@ data class CPoW(
 
 suspend fun parseCPOW(protocol: CPoW): JsonArray<Any?> {
 
-    // FIXME this is not generic enough for me
+    // FIXME use GSON
     val cpow = json {
         array(
                 obj(
-                        "version" to protocol.version
+                        "version" to array(
+                                obj(
+                                        "author" to protocol.version.author
+                                ),
+                                obj(
+                                        "service" to protocol.version.service
+                                ),
+                                obj(
+                                        "client" to protocol.version.client
+                                ),
+                                obj(
+                                        "homepage" to protocol.version.homepage
+                                ),
+                                obj(
+                                        "license" to protocol.version.license
+                                ),
+                                obj(
+                                        "thirdParties" to protocol.version.thirdParties
+                                )
+                        )
                 ),
                 obj(
                         "actionType" to protocol.actionType.name
