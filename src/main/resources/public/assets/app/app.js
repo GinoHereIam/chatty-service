@@ -1,5 +1,4 @@
 // Styles
-import "./vendor/font-awesome/css/font-awesome.min.css"
 import "./style.css";
 import "../node_modules/bulma/css/bulma.css"
 import {
@@ -192,7 +191,9 @@ class Chat extends React.Component {
                                     <Input type='search' placeholder='User search ...'/>
                                 </NavItem>
                                 <NavItem>
-                                    <Button color='isPrimary' onClick={this.logout}></Button>
+                                    <Button color='isPrimary' onClick={this.logout}>
+                                        <i className='material-icons'>exit_to_app</i>Logout
+                                    </Button>
                                 </NavItem>
                             </NavGroup>
                         </Nav>
@@ -231,7 +232,7 @@ class Chat extends React.Component {
                             </Card>
                             <Card style={contactCard}>
                                 <CardHeader>
-                                    <CardHeaderTitle>Miles Doe</CardHeaderTitle>
+                                    <CardHeaderTitle>Jane Doe</CardHeaderTitle>
                                 </CardHeader>
                                 <CardImage>
                                     <Image/>
@@ -736,17 +737,19 @@ export class InitApp extends React.Component {
                         </Container>
                     </HeroBody>
                 </Hero>
-                <Section hasTextCentered isFluid style={this.state.serviceInputStyle}>
+                <Section hasTextCentered style={this.state.serviceInputStyle}>
                     <Container>
                         <Title>Service Address</Title>
                         <Group>
-                            <Input type='text' onChange={this.addInternally}
-                                   placeholder='ws://localhost:8080/chatty' />
+                            <Input type='text' onChange={this.addInternally} placeholder='ws://localhost:8080/chatty'/>
                             <Button color='isPrimary' state={this.state.buttonTest} onClick={this.testConnection}>
-                                Verification
+                                <i className='material-icons'>dns</i>
+                                Verify
                             </Button>
                             <Button color='isPrimary' state={this.state.buttonEnter}
-                                    onClick={this.addServiceAddress}>Enter</Button>
+                                    onClick={this.addServiceAddress}>
+                                <i className='material-icons'>launch</i>Enter
+                            </Button>
                         </Group>
                         <span>{this.state.validateService}</span>
                     </Container>

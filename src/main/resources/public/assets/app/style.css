@@ -1,4 +1,5 @@
 html, body {
+    font-family: 'Material Icons';
     /*background: url(img/programming.jpg) no-repeat center center fixed;*/
     background-color: #eeeeee;
     -webkit-background-size: cover;
@@ -15,13 +16,28 @@ html, body {
     -ms-user-select: none; /* Internet Explorer/Edge */
     user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome and Opera */
-
     margin: 0;
     padding: 0;
     height: 100%;
     width: 100%;
 }
 
-.inlineIcon {
-    line-height: 40px;
+.material-icons {
+    vertical-align: top;
+
+    font-family: 'Material Icons', serif;
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    display: inline-block;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'liga';
 }
