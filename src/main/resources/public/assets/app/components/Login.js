@@ -1,0 +1,43 @@
+// Login
+import {Paper, FormControlLabel, TextField, Button, FormLabel} from "material-ui";
+import React from 'react';
+import PropTypes from 'prop-types';
+import { withStyles } from 'material-ui/styles';
+
+const styles = theme => ({
+    root: theme.mixins.gutters({
+        paddingTop: 16,
+        paddingBottom: 16,
+        marginTop: theme.spacing.unit * 3,
+        marginBottom: theme.spacing.unit * 3,
+        textAlign: 'center'
+    }),
+
+});
+
+export function LoginElements(props) {
+    const classes = props.classes;
+    return(
+        <Paper className={classes.root}>
+            <FormLabel component='legend'>Login</FormLabel>
+            <form onSubmit={props.loginSubmit}>
+                <FormControlLabel control={
+                    <TextField className="username" onChange={props.onChangeUsername('username')} label='Username'/>
+                }/>
+                <FormControlLabel control={
+                    <TextField className="password" onChange={props.onChangePassword('password')} label='Password' type="password"/>
+                }/>
+                <Button color='primary' type='submit'>Login</Button>
+            </form>
+        </Paper>
+    )
+}
+
+LoginElements.propTypes = {
+    classes: PropTypes.object.isRequired,
+    loginSubmit: PropTypes.func.isRequired,
+    onChangeUsername: PropTypes.func.isRequired,
+    onChangePassword: PropTypes.func.isRequired
+};
+
+export default withStyles(styles)(LoginElements)

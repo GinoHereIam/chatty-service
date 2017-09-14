@@ -1,22 +1,42 @@
 // Styles
 import "./style.css";
-import "../node_modules/bulma/css/bulma.css"
-import {
-    Container, Button, Title, Label, Input, Tile, Content, Image, Textarea, Card,
-    CardContent, CardImage, CardHeader, CardHeaderTitle, CardFooter, CardFooterItem, Nav, NavGroup, NavItem, NavToggle,
-    Hero, HeroBody, Subtitle, Section, FormHorizontal, ControlLabel, Group, Box, Notification, Modal
-} from "re-bulma";
+import 'typeface-roboto'
+// Material-ui
+import PropTypes from 'prop-types';
+import { withStyles } from 'material-ui/styles';
+import { MuiThemeProvider, createMuiTheme } from 'material-ui/styles';
+import { teal, grey, red } from 'material-ui/colors'
+
+import Button from 'material-ui/Button'
+import ButtonBase from 'material-ui/ButtonBase'
+import { Card, CardActions,
+    CardContent, CardHeader, CardMedia } from 'material-ui/Card'
+import { AppBar } from 'material-ui/AppBar'
+import { Drawer } from 'material-ui/Drawer'
+import Input from 'material-ui/TextField'
+// Useful for notification!
+import Snackbar from 'material-ui/Snackbar'
+import Slide from 'material-ui/transitions/Slide';
+import Dialog, {
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
+} from 'material-ui/Dialog';
+import Typography from 'material-ui/Typography';
+import {Paper, TextField} from "material-ui";
+
 // React
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 // Websocket
 import ReconnectingWebSocket from "./vendor/reconnecting-websocket.min";
-// Insert bulma stylesheet
-import insertCss from 'insert-css';
-import css from '../node_modules/re-bulma/build/css';
-try {
-    if (typeof document !== 'undefined' || document !== null) insertCss(css, { prepend: true });
-} catch (e) {}
+
+// Own Components
+import ChattyHeader from "./components/ChattyHeader";
+import Service from "./components/InitComponent"
+import RegisterElements from "./components/Register"
+import LoginElements from "./components/Login"
 
 // Functions
 function parseCPOW(event) {
@@ -181,97 +201,58 @@ class Chat extends React.Component {
 
         return(
             <div>
-                <Tile className='Navbar' context='isAncestor'>
-                    <Tile isVertical size='is12'>
-                        <Nav hasShadow style={navigation}>
-                            <NavGroup align='left'>
-                                <NavItem>
-                                    <strong>Hi {this.state.CPOW.user.name}!</strong>
-                                </NavItem>
-                            </NavGroup>
-                            <NavGroup align='center'>
-                                <NavItem>
-                                    <Button color='isInfo' onClick={() => this.setState({ showAbout: true })}>Your Chatty!</Button>
-                                </NavItem>
-                            </NavGroup>
-                            <NavToggle/>
-                            <NavGroup align='right' isMenu>
-                                <NavItem>
-                                    <Input type='search' placeholder='User search ...'/>
-                                </NavItem>
-                                <NavItem>
-                                    <Button color='isPrimary' onClick={this.logout}>
-                                        <i className='material-icons'>exit_to_app</i>Logout
-                                    </Button>
-                                </NavItem>
-                            </NavGroup>
-                        </Nav>
-                    </Tile>
-                </Tile>
-                <Tile className="chat" context="isAncestor" style={app}>
-                    <Tile isVertical size="is10">
-                        <Tile>
-                            <Tile context="isParent">
-                                <Tile context="isChild" style={messages}>
-                                    <Content className="messages"/>
-                                </Tile>
-                            </Tile>
-                        </Tile>
-                        <Tile context="isParent" className="msgbox">
-                            <Textarea style={msgbox}/>
-                        </Tile>
-                    </Tile>
-                    <Tile context="isParent">
-                        <Tile context="isChild" size='is10' style={contacts}>
-                            <Card style={contactCard}>
-                                <CardHeader>
-                                    <CardHeaderTitle>John Doe</CardHeaderTitle>
-                                </CardHeader>
-                                <CardImage>
-                                    <Image/>
-                                </CardImage>
-                                <CardContent>
-                                    <Content>Your last dummy messages from John Doe!</Content>
-                                </CardContent>
-                                <CardFooter>
-                                    <CardFooterItem>
-                                        <Button color="isPrimary" onClick={this.openChat}>Open</Button>
-                                    </CardFooterItem>
-                                </CardFooter>
-                            </Card>
-                            <Card style={contactCard}>
-                                <CardHeader>
-                                    <CardHeaderTitle>Jane Doe</CardHeaderTitle>
-                                </CardHeader>
-                                <CardImage>
-                                    <Image/>
-                                </CardImage>
-                                <CardContent>
-                                    <Content>Your last dummy messages from Miles Doe!</Content>
-                                </CardContent>
-                                <CardFooter>
-                                    <CardFooterItem>
-                                        <Button color="isPrimary" onClick={this.openChat}>Open</Button>
-                                    </CardFooterItem>
-                                </CardFooter>
-                            </Card>
-                        </Tile>
-                    </Tile>
-                </Tile>
-                <Modal
-                    type="card"
-                    headerContent="Chatty information"
-                    isActive={this.state.showAbout}
+                <div className='navbar'>
+                    <nav>
+                        <ul>
+                            <li>
+                                <strong>Hi {this.state.CPOW.user.name}!</strong>
+                            </li>
+                        </ul>
+                        <ul>
+                            <li>
+                                <Button color='isInfo' onClick={() => this.setState({ showAbout: true })}>Your Chatty!</Button>
+                            </li>
+                        </ul>
+                        <Button/>
+                        <ul>
+                            <li>
+                                <Input type='search' placeholder='User search ...'/>
+                            </li>
+                            <li>
+                                <Button color='isPrimary' onClick={this.logout}>
+                                    <i className='material-icons'>exit_to_app</i>Logout
+                                </Button>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                <div className="chat" style={app}>
+                    <div className='messages'>
+
+                    </div>
+                    <div className='contacts'>
+
+                    </div>
+                </div>
+                <Dialog
                     onCloseRequest={() => this.setState({ showAbout: false })}>
-                    <Content>
-                        <b>Author</b>: {this.state.CPOW.version.author} <br/>
-                        <b>Service version</b>: {this.state.CPOW.version.service} <br/>
-                        <b>Client version</b>: {this.state.CPOW.version.client} <br/>
-                        <b>Homepage</b>: {this.state.CPOW.version.homepage} <br/>
-                        <b>3rdParties</b>: {this.state.CPOW.version.thirdParties} <br/>
-                        <b>License</b>: {this.state.CPOW.version.license} <br/>
-                    </Content>
-                </Modal>
+                    <DialogTitle>Chatty information</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText>
+                            <b>Author</b>: {this.state.CPOW.version.author} <br/>
+                            <b>Service version</b>: {this.state.CPOW.version.service} <br/>
+                            <b>Client version</b>: {this.state.CPOW.version.client} <br/>
+                            <b>Homepage</b>: {this.state.CPOW.version.homepage} <br/>
+                            <b>3rdParties</b>: {this.state.CPOW.version.thirdParties} <br/>
+                            <b>License</b>: {this.state.CPOW.version.license} <br/>
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button color="primary">
+                            OK
+                        </Button>
+                    </DialogActions>
+                </Dialog>
             </div>
         )
     }
@@ -286,35 +267,43 @@ class Login extends React.Component {
             username: '',
             password: '',
             CPOW: '',
-            serviceOutput: props.serviceOutput
+            serviceOutput: '',
+            notify: false
+
         };
         this.onChange = this.onChange.bind(this);
         this.login = this.login.bind(this);
     }
 
-    onChange(event) {
-        let targetName = event.target.parentNode.classList[1];
+    onChange = name => event => {
+        // TODO validate the input!
         this.setState({
-            [targetName]: event.target.value
+            [name]: event.target.value
         })
-    }
+    };
 
     login (event) {
         event.preventDefault();
         if( this.state.username !== "" || this.state.password !== "") {
-            let json = JSON.stringify({
-                "actionType": "USER_LOGIN_ACCOUNT",
-                "username": this.state.username,
-                "password": this.state.password,
-                "content": "",
-            });
+
+            let loginObj = {
+                actionType: "USER_LOGIN_ACCOUNT",
+                username: this.state.username,
+                password: this.state.password
+            };
+
+            let json = JSON.stringify(loginObj);
             this.state.socket.send(json)
         }
     };
 
+    handleSnackbarClose = () => {
+        this.setState({ notify: false });
+    };
+
     render() {
         let self = this;
-        this.state.socket.onmessage = function(event) {
+        this.state.socket.onmessage = event => {
             let CPOW = parseCPOW(event.data);
 
             self.setState({
@@ -323,6 +312,7 @@ class Login extends React.Component {
 
             let service_output = CPOW.header.additionalText;
             self.setState({
+                notify: true,
                 serviceOutput: service_output
             });
 
@@ -350,16 +340,19 @@ class Login extends React.Component {
 
         return (
             <div>
-                <Container>
-                    <Title size="is4">Login</Title>
-                    <form onSubmit={this.login}>
-                        <Label>Username:</Label>
-                        <Input className="username" color='isInfo' onChange={this.onChange}/>
-                        <Label>Password:</Label>
-                        <Input className="password" color='isInfo' onChange={this.onChange} type="password"/>
-                        <Button color="isPrimary" type="submit">Login</Button>
-                    </form>
-                </Container>
+                <LoginElements
+                    loginSubmit={this.login}
+                    onChangeUsername={this.onChange}
+                    onChangePassword={this.onChange}/>
+                <Snackbar
+                    open={this.state.notify}
+                    onRequestClose={this.handleSnackbarClose}
+                    transition={<Slide direction='up' />}
+                    SnackbarContentProps={{
+                        'aria-describedby': 'service-message',
+                    }}
+                    message={<span id='service-message'>{this.state.serviceOutput}</span>}
+                />
             </div>
         )
     };
@@ -369,16 +362,23 @@ class Register extends React.Component {
     constructor(props) {
         super(props);
 
+        // TODO use helperText to show validation errors
         this.state = {
             socket: props.socket,
+            CPOW: null,
             username: '',
             name: '',
             password: '',
-            button: 'isDisabled',
-            inputname: 'isInfo',
-            inputusername: 'isInfo',
-            CPOW: null,
-            serviceOutput: props.serviceOutput
+            buttonDisabled: true,
+            nameError: false,
+            nameErrorText: '',
+            usernameError: false,
+            usernameErrorText: '',
+            passwordErrorState: false,
+            passwordErrorText: '',
+            passwordError: '',
+            notify: false,
+            serviceMessage: ''
         };
 
         this.validatePasswordOnChange = this.validatePasswordOnChange.bind(this);
@@ -388,8 +388,7 @@ class Register extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         this.setState({
-            socket: nextProps.socket,
-            serviceOutput: nextProps.serviceOutput
+            socket: nextProps.socket
         });
     }
 
@@ -404,56 +403,52 @@ class Register extends React.Component {
                 CPOW: CPOW
             });
 
-            let service_output = CPOW.header.additionalText;
-            self.setState({
-                serviceOutput: service_output
-            });
-
+            // Use Snackbar to show Service information
+            let serviceMessage = CPOW.header.additionalText;
+            if(serviceMessage !== "") {
+                self.setState({
+                    notify: true,
+                    serviceMessage: serviceMessage
+                })
+            }
         };
     }
 
-    validateUsernameOnChange(event) {
+    validateUsernameOnChange = name => event => {
         let length = event.target.value.length;
-        let validate_field = document.getElementById('validate');
-        let targetName = event.target.parentNode.classList[1];
-
         this.setState({
-            [targetName]: event.target.value
+            [name]: event.target.value
         });
 
         if (length >= this.state.CPOW.user.minimumLength) {
 
-            // Validation output
-            validate_field.innerHTML = '<span style="color: #4caf50; font-weight: bold;">' +
-                '<br>Great name! ' + event.target.value + '</br></span>';
+            this.setState({
+                notify: true,
+                serviceMessage: "Great name! " + event.target.value
+            });
 
             if(this.state.password.length === this.state.CPOW.password.minimumLength) {
                 this.setState({
-                    button: "isActive"
+                    buttonDisabled: false
                 })
             }
-
         } else {
 
-            // Validation output
-            validate_field.innerHTML = '<span style="color: #f44336; font-weight: bold;">' +
-                '<br>Too short :( ' + event.target.value + '</br></span>';
             this.setState({
-                button: "isDisabled"
-            })
+                notify: true,
+                serviceMessage: "Too short :( " + event.target.value,
+                buttonDisabled: true
+            });
         }
-    }
+    };
 
-    validatePasswordOnChange(event) {
+    validatePasswordOnChange = password => event => {
         let value = event.target.value;
         let length = value.length;
-        let targetName = event.target.parentNode.classList[1];
 
         this.setState({
-            [targetName]: value
+            [password]: value
         });
-
-        let validate_field = document.getElementById('validate');
 
         let good = 12;
         let minimum = this.state.CPOW.password.minimumLength;
@@ -461,125 +456,127 @@ class Register extends React.Component {
 
         if (length >= minimum && length < good) {
 
-            // Validation output
-            validate_field.innerHTML = '<span style="color: #4caf50; font-weight: bold;">' +
-                '<br>Good password! ' + String(good - length) + ' chars left for perfect one!</br></span>';
+            this.setState({
+                notify: true,
+                serviceMessage: "Good password! " + String(good - length) + "chars left for perfect one"
+            });
 
             if(this.state.username.length === usermin && this.state.name.length === usermin) {
                 this.setState({
-                    button: "isActive"
+                    buttonDisabled: false
                 });
             }else {
                 if(this.state.username.length === 0) {
                     this.setState({
-                        inputusername: 'isDanger',
-                        button: 'isDisabled'
+                        buttonDisabled: true
                     })
                 }else {
                     this.setState({
-                        inputusername: 'isSuccess',
-                        button: 'isActive'
+                        buttonDisabled: false
                     })
                 }
 
                 if(this.state.name.length === 0) {
                     this.setState({
-                        inputname: 'isDanger',
-                        button: 'isDisabled'
+                        buttonDisabled: true
                     })
                 }else {
                     this.setState({
-                        inputname: 'isSuccess',
-                        button: 'isActive'
+                        buttonDisabled: false
                     })
                 }
             }
 
         } else if (length >= good) {
-            // Validation output
-            validate_field.innerHTML = '<span style="color: #4caf50; font-weight: bold;"><br>Perfect one!</br></span>';
+
+            this.setState({
+                notify: true,
+                serviceMessage: "Perfect password!"
+            });
 
             if(this.state.username.length === usermin && this.state.name.length === usermin) {
                 this.setState({
-                    button: "isActive"
+                    buttonDisabled: false
                 });
             }else {
                 if(this.state.username.length === 0) {
                     this.setState({
-                        inputusername: 'isDanger',
-                        button: 'isDisabled'
+                        buttonDisabled: true
                     })
                 }else {
                     this.setState({
-                        inputusername: 'isSuccess',
-                        button: 'isActive'
+                        buttonDisabled: false
                     })
                 }
 
                 if(this.state.name.length === 0) {
                     this.setState({
-                        inputname: 'isDanger',
-                        button: 'isDisabled'
+                        buttonDisabled: true
                     })
                 }else {
                     this.setState({
-                        inputname: 'isSuccess',
-                        button: 'isActive'
+                        buttonDisabled: false
                     })
                 }
             }
         } else {
-            // Validation output
-            validate_field.innerHTML = '<span style="color: #f44336; font-weight: bold;">' +
-                '<br>Too weak :( ' + String(minimum - length) + ' left!</br></span>';
             this.setState({
-                button: "isDisabled"
-            })
+                notify: true,
+                serviceMessage: "Too weak! :( " + String(minimum - length) + " left! ",
+                buttonDisabled: true
+            });
         }
-    }
+    };
 
     register (event) {
         event.preventDefault();
         if( this.state.username.length !== 0 || this.state.name.length !== 0 || this.state.password.length !== 0) {
-            this.state.socket.send(JSON.stringify({
-                "actionType": "USER_REGISTER_ACCOUNT",
-                "name": this.state.name,
-                "username": this.state.username,
-                "password": this.state.password,
-                "content": "",
-                "token": ""
-            }));
+            let registerObj = {
+                actionType: "USER_REGISTER_ACCOUNT",
+                name: this.state.name,
+                username: this.state.username,
+                password: this.state.password
+            };
+            let json = JSON.stringify(registerObj);
+            this.state.socket.send(json);
         }else {
-            return null
+            this.setState({
+                notify: true,
+                serviceMessage: "Could not send registration to service!",
+                buttonDisabled: true
+            });
         }
+    };
+
+    handleSnackbarClose = () => {
+        this.setState({ notify: false });
     };
 
     render() {
         return (
             <div>
-                <Container>
-                    <Title size="is4">Register</Title>
-                    <form onSubmit={this.register}>
-                        <Label>Username:</Label>
-                        <Input className="username"
-                               onChange={this.validateUsernameOnChange}
-                               color={this.state.inputusername}/>
-                        <Label>Display name:</Label>
-                        <Input className="name"
-                               onChange={this.validateUsernameOnChange}
-                               color={this.state.inputname}/>
-                        <Label>Password:</Label><p/>
-                        <Input className="password"
-                               color="isPrimary"
-                               onChange={this.validatePasswordOnChange}
-                               type="password">{this.state.password}</Input>
-                        <span id="validate"/>
-                        <Button color="isInfo"
-                                state={this.state.button}
-                                type="submit"
-                                className="submitBtn">Register</Button>
-                    </form>
-                </Container>
+                <RegisterElements
+                    registerSubmit={this.register}
+                    validateUsernameOnChange={this.validateUsernameOnChange}
+                    validatePasswordOnChange={this.validatePasswordOnChange}
+                    buttonRegisterDisabled={this.state.buttonDisabled}
+                    displyNameErrorState={this.state.nameError}
+                    displayNameErrorText={this.state.nameErrorText}
+                    usernameErrorState={this.state.usernameError}
+                    usernameErrorText={this.state.usernameErrorText}
+                    passwordErrorState={this.state.passwordError}
+                    passwordErrorText={this.state.passwordErrorText}
+                    passwordInputValue={this.state.password}
+                />
+                <Snackbar
+                    open={this.state.notify}
+                    onRequestClose={this.handleSnackbarClose}
+                    transition={<Slide direction='up' />}
+                    SnackbarContentProps={{
+                        'aria-describedby': 'service-message',
+                    }}
+                    message={<span id='service-message'>{this.state.serviceMessage}</span>}
+                />
             </div>
         )
     }
@@ -591,7 +588,8 @@ export class Auth extends React.Component {
 
         this.state = {
             socket: new ReconnectingWebSocket(props.address, null, {automaticOpen: false}),
-            serviceOutput: ''
+            serviceOutput: '',
+            dnmode: props.dnmode
         };
     }
 
@@ -634,23 +632,27 @@ export class Auth extends React.Component {
     }
 
     render() {
+        const theme = createMuiTheme({
+            palette: {
+                primary: teal,
+                secondary: grey,
+                error: red,
+                type: this.state.dnmode
+            }
+        });
+
         return (
-            <span>
-                <Hero color='isPrimary' size='isMedium'>
-                    <HeroBody>
-                        <Container>
-                            <Title>Chatty</Title>
-                            <Subtitle>Your own communication channel! Your own cloud chat service!</Subtitle>
-                        </Container>
-                    </HeroBody>
-                </Hero>
-                <Box>
-                    <Login socket={this.state.socket} />
-                </Box>
-                <Box>
-                    <Register socket={this.state.socket}/>
-                </Box>
-            </span>
+            <MuiThemeProvider theme={theme}>
+                <span>
+                    <ChattyHeader/>
+                    <div>
+                        <Login socket={this.state.socket} />
+                    </div>
+                    <div>
+                        <Register socket={this.state.socket}/>
+                    </div>
+                </span>
+            </MuiThemeProvider>
         );
     }
 }
@@ -658,16 +660,17 @@ export class Auth extends React.Component {
 export class InitApp extends React.Component {
     constructor(props) {
         super(props);
-
         this.state = {
             socket: null,
             servicePath: '',
-            buttonEnter: 'isDisabled',
-            buttonTest: 'isDisabled',
+            buttonEnter: true,
+            buttonTest: true,
             serviceInputStyle: {
                 display: 'block'
             },
-            validateService: ''
+            validateService: '',
+            notify: false,
+            dnmode: props.dnmode
         };
 
         this.addServiceAddress = this.addServiceAddress.bind(this);
@@ -684,7 +687,7 @@ export class InitApp extends React.Component {
         }
 
         ReactDOM.render(
-            <Auth address={this.state.servicePath}/>,
+            <Auth address={this.state.servicePath} dnmode={this.state.dnmode}/>,
             document.getElementById('app')
         );
     };
@@ -696,8 +699,8 @@ export class InitApp extends React.Component {
             _socket = new WebSocket(this.state.servicePath);
         }catch(err) {
             this.setState({
-                buttonEnter: 'isDisabled',
-                buttonTest: 'isDisabled',
+                buttonEnter: true,
+                buttonTest: true,
                 validateService: 'This seems not to be a valid service! :('
             })
         }
@@ -718,17 +721,19 @@ export class InitApp extends React.Component {
             let CPOW = parseCPOW(event.data);
             if(CPOW) {
                 self.setState({
-                    buttonEnter: 'isActive',
+                    buttonEnter: false,
                     socket: _socket,
-                    validateService: 'Nice! It is a valid service! :)'
+                    validateService: 'Nice! It is a valid service! :)',
+                    notify: true
                 })
             }
         };
 
         _socket.onerror = function () {
             self.setState({
-                buttonEnter: 'isDisabled',
-                validateService: 'This seems not to be a valid service! :('
+                buttonEnter: true,
+                validateService: 'This seems not to be a valid service! :(',
+                notify: true
             })
         };
     }
@@ -738,51 +743,59 @@ export class InitApp extends React.Component {
         // ws://
         if(value.length > 5) {
             this.setState({
-                buttonTest: 'isActive',
+                buttonTest: false,
                 servicePath: value
             });
         }else {
             this.setState({
-                buttonTest: 'isDisabled',
+                buttonTest: true,
                 servicePath: value
             });
         }
+    }
+
+    handleSnackbarClose = () => {
+        this.setState({ notify: false });
     };
 
     render() {
+
+        const theme = createMuiTheme({
+            palette: {
+                primary: teal,
+                secondary: grey,
+                error: red,
+                type: this.state.dnmode
+            }
+        });
+
         return (
-            <div>
-                <Hero color='isPrimary' size='isMedium'>
-                    <HeroBody>
-                        <Container>
-                            <Title>Chatty</Title>
-                            <Subtitle>Your own communication channel! Your own cloud chat service!</Subtitle>
-                        </Container>
-                    </HeroBody>
-                </Hero>
-                <Section hasTextCentered style={this.state.serviceInputStyle}>
-                    <Container>
-                        <Title>Service Address</Title>
-                        <Group>
-                            <Input type='text' onChange={this.addInternally} placeholder='ws://localhost:8080/chatty'/>
-                            <Button color='isPrimary' state={this.state.buttonTest} onClick={this.testConnection}>
-                                <i className='material-icons'>dns</i>
-                                Verify
-                            </Button>
-                            <Button color='isPrimary' state={this.state.buttonEnter}
-                                    onClick={this.addServiceAddress}>
-                                <i className='material-icons'>launch</i>Enter
-                            </Button>
-                        </Group>
-                        <span>{this.state.validateService}</span>
-                    </Container>
-                </Section>
-            </div>
+            <MuiThemeProvider theme={theme}>
+                <span>
+                    <ChattyHeader/>
+                    <Service
+                        addInternally={this.addInternally}
+                        stateVerificationButton={this.state.buttonTest}
+                        testConnection={this.testConnection}
+                        stateEnterButton={this.state.buttonEnter}
+                        addServiceAddress={this.addServiceAddress}
+                    />
+                    <Snackbar
+                        open={this.state.notify}
+                        onRequestClose={this.handleSnackbarClose}
+                        transition={<Slide direction='up' />}
+                        SnackbarContentProps={{
+                            'aria-describedby': 'validate-service',
+                        }}
+                        message={<span id='validate-service'>{this.state.validateService}</span>}
+                    />
+                </span>
+            </MuiThemeProvider>
         );
     }
 }
 
 ReactDOM.render(
-    <InitApp/>,
+    <InitApp dnmode='light'/>,
     document.getElementById('app')
 );
