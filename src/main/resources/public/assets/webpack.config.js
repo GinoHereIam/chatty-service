@@ -14,6 +14,9 @@ module.exports = {
     devtool: 'source-map',
     devServer: {
         contentBase: './dist',
+        inline: true,
+        port: 8081,
+        host: 'localhost'
     },
     /*externals: {
         "react": "React",
@@ -25,7 +28,14 @@ module.exports = {
                 test: /\.css$/,
                 use: ExtractTextPlugin.extract('css-loader')
             },
-            {test: /\.js$/, loader: 'babel-loader', exclude: /node_modules/},
+            {
+                test: /\.js$/,
+                loader: 'babel-loader',
+                exclude: /node_modules/,
+                query: {
+                    cacheDirectory: true,
+                }
+            },
             {test: /\.jsx$/, loader: 'babel-loader', exclude: /node_modules/},
             {
                 test: /\.(png|svg|jpg|gif)$/,
