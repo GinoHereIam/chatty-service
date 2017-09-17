@@ -22,11 +22,13 @@ export function LoginElements(props) {
             <FormLabel component='legend'>Login</FormLabel>
             <form onSubmit={props.loginSubmit}>
                 <FormControlLabel control={
-                    <TextField className="username" onChange={props.onChangeUsername('username')} label='Username'/>
-                }/>
+                    <TextField className="username"
+                               onChange={props.onChangeUsername('username')} label='Username'/>
+                } required/>
                 <FormControlLabel control={
-                    <TextField className="password" onChange={props.onChangePassword('password')} label='Password' type="password"/>
-                }/>
+                    <TextField className="password"
+                               onChange={props.onChangePassword('password')} label='Password' type="password"/>
+                } required/>
                 <Button color='primary' type='submit'>Login</Button>
             </form>
         </Paper>

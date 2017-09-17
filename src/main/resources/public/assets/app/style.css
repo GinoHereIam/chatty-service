@@ -1,5 +1,5 @@
 html, body {
-    font-family: 'Material Icons';
+    font-family: 'Material Icons', serif;
     /*background: url(img/programming.jpg) no-repeat center center fixed;*/
     background-color: #eeeeee;
     -webkit-background-size: cover;
@@ -18,8 +18,6 @@ html, body {
                                   supported by Chrome and Opera */
     margin: 0;
     padding: 0;
-    height: 100%;
-    width: 100%;
 }
 
 .material-icons {

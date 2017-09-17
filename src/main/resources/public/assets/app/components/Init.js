@@ -25,17 +25,16 @@ function Service(props) {
                 <span style={elementStyle}>
                     <TextField onChange={props.addInternally}
                                label='Service address'
-                               placeholder='ws://localhost:8080/chatty' required/>
+                               placeholder='ws://localhost:8080/chatty'/>
                 </span>
-            <span style={elementStyle}>
-                    <Button disabled={props.stateVerificationButton}
-                            onChange={props.verifyConnection}
+                <span style={elementStyle}>
+                    <Button disabled={props.buttonTestDisabled}
                             onClick={props.testConnection}>
                         Verify
                     </Button>
                 </span>
-            <span style={elementStyle}>
-                    <Button color='primary' disabled={props.stateEnterButton}
+                <span style={elementStyle}>
+                    <Button color='primary' disabled={props.buttonEnterDisabled}
                             onClick={props.addServiceAddress}>
                         Enter
                     </Button>
@@ -46,6 +45,10 @@ function Service(props) {
 
 Service.propTypes = {
     classes: PropTypes.object.isRequired,
+    testConnection: PropTypes.func.isRequired,
+    buttonTestDisabled: PropTypes.bool.isRequired,
+    addServiceAddress: PropTypes.func.isRequired,
+    buttonEnterDisabled: PropTypes.bool.isRequired,
 };
 
 export default withStyles(styles)(Service)

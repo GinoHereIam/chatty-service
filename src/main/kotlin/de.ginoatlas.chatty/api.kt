@@ -107,8 +107,8 @@ data class Version(
         val service: String = "Alpha",
         val client: String = "0.0.0",
         val license: String = "MIT License",
-        val homepage: String = "https://chatty.gino-atlas.de",
-        val thirdParties: String = "ReactJS & Google material icons"
+        val homepage: String = "TO CREATE!",
+        val thirdParties: String = "ReactJS, Material-Ui & Google material icons"
 )
 
 data class CPoW(
