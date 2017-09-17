@@ -38,7 +38,7 @@ function RegisterElements(props) {
                                type="password"
                                label='Password'>{props.passwordInputValue}</TextField>
                 }/>
-                <Button color="info"
+                <Button color="primary"
                         disabled={props.buttonRegisterDisabled}
                         type="submit"
                         className="submitBtn">Register

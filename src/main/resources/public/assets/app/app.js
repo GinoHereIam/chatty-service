@@ -2,29 +2,13 @@
 import "./style.css";
 import 'typeface-roboto'
 // Material-ui
-import PropTypes from 'prop-types';
-import { withStyles } from 'material-ui/styles';
-import { MuiThemeProvider, createMuiTheme } from 'material-ui/styles';
-import { teal, grey, red } from 'material-ui/colors'
+import { teal, blueGrey, red } from 'material-ui/colors'
 
-import Button from 'material-ui/Button'
-import ButtonBase from 'material-ui/ButtonBase'
-import { Card, CardActions,
-    CardContent, CardHeader, CardMedia } from 'material-ui/Card'
-import { AppBar } from 'material-ui/AppBar'
-import { Drawer } from 'material-ui/Drawer'
-import Input from 'material-ui/TextField'
-// Useful for notification!
-import Snackbar from 'material-ui/Snackbar'
-import Slide from 'material-ui/transitions/Slide';
-import Dialog, {
-    DialogTitle,
-    DialogContent,
-    DialogContentText,
-    DialogActions,
-} from 'material-ui/Dialog';
-import Typography from 'material-ui/Typography';
-import {Paper, TextField} from "material-ui";
+import { FormControlLabel, AppBar, Drawer, Input,
+    Card, CardActions, CardContent, CardHeader, CardMedia, Button,
+    ButtonBase, MuiThemeProvider, createMuiTheme, withStyles, Paper, Switch, TextField, Typography, Snackbar, Dialog, DialogTitle,
+    DialogContent, DialogContentText, DialogActions} from 'material-ui';
+import Slide from "material-ui/transitions/Slide"
 
 // React
 import * as React from 'react';
@@ -33,10 +17,13 @@ import * as ReactDOM from 'react-dom';
 import ReconnectingWebSocket from "./vendor/reconnecting-websocket.min";
 
 // Own Components
-import ChattyHeader from "./components/ChattyHeader";
-import Service from "./components/InitComponent"
+import Header from "./components/elements/Header";
+import Service from "./components/Init"
 import RegisterElements from "./components/Register"
 import LoginElements from "./components/Login"
+import Chat from "./components/Chat"
+import {getDnMode} from "./util/dnmode"
+import ChattyAppBar from './components/elements/AppBar'
 
 // Functions
 function parseCPOW(event) {
@@ -95,35 +82,37 @@ function parseCPOW(event) {
     };
 }
 
-class Chat extends React.Component {
+class Chatty extends React.Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            socket: props.socket,
-            CPOW: props.CPOW,
-            notify: '',
-            chat: ''
+            socket: props.state.socket,
+            CPOW: props.state.CPOW,
+            notify: props.state.notify,
+            serviceOutput: props.state.serviceOutput,
+            chat: '',
+            dnmode: getDnMode(),
+            menuOpen: false,
+            showAbout: false,
+            openContacts: false,
         };
-
-        console.log(this.state.CPOW);
 
         this.openChat = this.openChat.bind(this);
         this.logout = this.logout.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
     }
 
-    logout() {
+    logout = event => {
         let CPOW = {
             actionType: 'USER_DISCONNECT'
         };
 
-        let serialized = JSON.stringify(CPOW);
-        console.log(serialized);
-        this.state.socket.send(serialized);
-    }
+        let cpow = JSON.stringify(CPOW);
+        this.state.socket.send(cpow);
+    };
 
-    openChat(event) {
+    openChat = event => {
         //let targetName = event.target.parentNode.classList[1];
         //let targetName = event.target.name;
         //console.log('Open chat target: ' + targetName);
@@ -133,127 +122,118 @@ class Chat extends React.Component {
         messages.innerHTML = 'Your last dummy messages from John Doe!'
     };
 
-    sendMessage(event) {
+    sendMessage = event => {
+        // TODO
+    };
 
-    }
+    handleSnackbarClose = () => {
+        this.setState({ notify: false });
+    };
+
+    handleContactsSubList = () => {
+        this.setState({ openContacts: !this.state.openContacts });
+    };
+
 
     render() {
+        // Set theme
+        const theme = createMuiTheme({
+            palette: {
+                primary: teal,
+                secondary: blueGrey,
+                error: red,
+                type: this.state.dnmode,
+            },
+        });
+
         // Actual this to access this.setState({})
         let self = this;
 
-        this.state.socket.onmessage = function(event) {
+        this.state.socket.onmessage = event => {
             let CPOW = parseCPOW(event.data);
-
-            //console.log(CPOW);
 
             self.setState({
                 CPOW: CPOW
             });
 
-            let service_output = CPOW.header.additionalText;
-            console.log(service_output);
-            //document.getElementById('service_output').innerHTML += service_output + "<br/>";
+            self.setState({
+                notify: true,
+                serviceOutput: CPOW.header.additionalText
+            });
 
-            if(CPOW.responseType === 'SUCCESS' && CPOW.actionType === 'USER_DISCONNECT') {
-                // Redirect to start page
-                window.location.replace('/');
+            if(self.state.CPOW.responseType === 'SUCCESS' && self.state.CPOW.actionType === 'USER_DISCONNECT') {
+                this.state.socket.close();
+
+                let app = document.getElementById('app');
+
+                // Remove Everything!
+                while(app.firstChild) {
+                    app.removeChild(app.firstChild)
+                }
+
+
+                ReactDOM.render(
+                    <InitApp dnmode={self.state.dnmode}
+                             socket={null}
+                             servicePath={''}
+                             buttonTestDisabled={true}
+                             buttonEnterDisabled={true}
+                             serviceOutput={self.state.serviceOutput}
+                             notify={self.state.notify}/>,
+                    document.getElementById('app')
+                )
+
             }
         };
 
-        const app = {
-            height: '100%',
-            width: '100%',
-            margin: '0',
-            padding: '0'
-        };
-
-        const messages = {
-            //background: '#eee',
-            background: 'white',
-            borderRadius: '5px',
-            padding: '1%'
-        };
-
-        const contacts = {
-            background: '#eee',
-            //background: 'white',
-            borderRadius: '5px',
-            padding: '2%'
-        };
-
-        const contactCard = {
-            margin: '3% 0',
-            padding: '1% 0',
-            borderRadius: '5px'
-        };
-
-        const msgbox = {
-            width: '100%'
-        };
-
-        const navigation = {
-            top: '0',
-            left: '0',
-            width: '100%',
-            margin: '0',
-            padding: ' .5% 2%'
+        this.state.socket.onclose = event =>{
+            self.setState({
+                notify: true,
+                serviceOutput: 'No connection to service.'
+            });
         };
 
         return(
-            <div>
-                <div className='navbar'>
-                    <nav>
-                        <ul>
-                            <li>
-                                <strong>Hi {this.state.CPOW.user.name}!</strong>
-                            </li>
-                        </ul>
-                        <ul>
-                            <li>
-                                <Button color='isInfo' onClick={() => this.setState({ showAbout: true })}>Your Chatty!</Button>
-                            </li>
-                        </ul>
-                        <Button/>
-                        <ul>
-                            <li>
-                                <Input type='search' placeholder='User search ...'/>
-                            </li>
-                            <li>
-                                <Button color='isPrimary' onClick={this.logout}>
-                                    <i className='material-icons'>exit_to_app</i>Logout
-                                </Button>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
-                <div className="chat" style={app}>
-                    <div className='messages'>
-
-                    </div>
-                    <div className='contacts'>
-
-                    </div>
-                </div>
-                <Dialog
-                    onCloseRequest={() => this.setState({ showAbout: false })}>
-                    <DialogTitle>Chatty information</DialogTitle>
-                    <DialogContent>
-                        <DialogContentText>
-                            <b>Author</b>: {this.state.CPOW.version.author} <br/>
-                            <b>Service version</b>: {this.state.CPOW.version.service} <br/>
-                            <b>Client version</b>: {this.state.CPOW.version.client} <br/>
-                            <b>Homepage</b>: {this.state.CPOW.version.homepage} <br/>
-                            <b>3rdParties</b>: {this.state.CPOW.version.thirdParties} <br/>
-                            <b>License</b>: {this.state.CPOW.version.license} <br/>
-                        </DialogContentText>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button color="primary">
-                            OK
-                        </Button>
-                    </DialogActions>
-                </Dialog>
-            </div>
+            <MuiThemeProvider theme={theme}>
+                <span>
+                    <ChattyAppBar
+                        openSubContacts={this.handleContactsSubList}
+                        isContactsOpen={this.state.openContacts}
+                        logout={this.logout}
+                        showAbout={() => this.setState({ showAbout: true })}
+                        switchStyleOnClick={(event, checked) => {checked ?
+                            this.setState({dnmode: 'dark'}) : this.setState({dnmode: 'light'})
+                        }}
+                        switchStyleChecked={this.state.dnmode === 'dark'}
+                    />
+                    <Dialog
+                        open={this.state.showAbout}
+                        onRequestClose={() => this.setState({ showAbout: false })}
+                        modal={true}
+                        transition={<Slide direction="up" />}>
+                        <DialogTitle>Chatty information</DialogTitle>
+                        <DialogContent>
+                            <DialogContentText>
+                                <b>Author</b>: {this.state.CPOW.version.author} <br/>
+                                <b>Service version</b>: {this.state.CPOW.version.service} <br/>
+                                <b>Client version</b>: {this.state.CPOW.version.client} <br/>
+                                <b>Homepage</b>: {this.state.CPOW.version.homepage} <br/>
+                                <b>3rdParties</b>: {this.state.CPOW.version.thirdParties} <br/>
+                                <b>License</b>: {this.state.CPOW.version.license} <br/>
+                            </DialogContentText>
+                        </DialogContent>
+                    </Dialog>
+                    <Snackbar
+                        open={this.state.notify}
+                        onRequestClose={this.handleSnackbarClose}
+                        transition={<Slide direction='up' />}
+                        SnackbarContentProps={{
+                            'aria-describedby': 'service-message',
+                        }}
+                        message={<span id='service-message'>{this.state.serviceOutput}</span>}
+                    />
+                </span>
+            </MuiThemeProvider>
         )
     }
 }
@@ -302,6 +282,7 @@ class Login extends React.Component {
     };
 
     render() {
+
         let self = this;
         this.state.socket.onmessage = event => {
             let CPOW = parseCPOW(event.data);
@@ -317,22 +298,16 @@ class Login extends React.Component {
             });
 
             if (self.state.CPOW.responseType === "SUCCESS" && self.state.CPOW.actionType === "USER_LOGIN_ACCOUNT") {
-                let body = document.body;
+                let app = document.getElementById('app');
 
                 // Remove Everything!
-                while(body.firstChild) {
-                    body.removeChild(body.firstChild)
+                while(app.firstChild) {
+                    app.removeChild(app.firstChild)
                 }
-
-                // Add back the app class
-                let span = document.createElement('span');
-                span.id = 'app';
-
-                body.appendChild(span);
 
                 // Render chat
                 ReactDOM.render(
-                    <Chat socket={self.state.socket} CPOW={self.state.CPOW} />,
+                    <Chatty state={self.state} />,
                     document.getElementById('app')
                 )
             }
@@ -597,16 +572,14 @@ export class Auth extends React.Component {
         // Actual this to access this.setState({})
         let self = this;
 
+        let enableClientOnService = {
+            actionType: "USER_CONNECT"
+        };
+
+        // Create websocket connection
         this.state.socket.open();
         this.state.socket.onopen = function (event) {
-            let message = JSON.stringify({
-                "actionType": "USER_CONNECT",
-                "username": "",
-                "name": "",
-                "password": "",
-                "content": "",
-                "token": ""
-            });
+            let message = JSON.stringify(enableClientOnService);
             //console.log('open:', event);
             self.state.socket.send(message)
         };
@@ -635,7 +608,7 @@ export class Auth extends React.Component {
         const theme = createMuiTheme({
             palette: {
                 primary: teal,
-                secondary: grey,
+                secondary: blueGrey,
                 error: red,
                 type: this.state.dnmode
             }
@@ -644,7 +617,7 @@ export class Auth extends React.Component {
         return (
             <MuiThemeProvider theme={theme}>
                 <span>
-                    <ChattyHeader/>
+                    <Header/>
                     <div>
                         <Login socket={this.state.socket} />
                     </div>
@@ -661,15 +634,12 @@ export class InitApp extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            socket: null,
-            servicePath: '',
-            buttonEnter: true,
-            buttonTest: true,
-            serviceInputStyle: {
-                display: 'block'
-            },
-            validateService: '',
-            notify: false,
+            socket: props.socket,
+            servicePath: props.servicePath,
+            buttonEnterDisabled: props.buttonEnterDisabled,
+            buttonTestDisabled: props.buttonTestDisabled,
+            serviceOutput: props.serviceOutput,
+            notify: props.notify,
             dnmode: props.dnmode
         };
 
@@ -681,9 +651,6 @@ export class InitApp extends React.Component {
     addServiceAddress(event) {
         if(this.state.socket !== null) {
             this.state.socket.close();
-            this.setState({
-                serviceInputStyle: 'hidden'
-            });
         }
 
         ReactDOM.render(
@@ -699,9 +666,9 @@ export class InitApp extends React.Component {
             _socket = new WebSocket(this.state.servicePath);
         }catch(err) {
             this.setState({
-                buttonEnter: true,
-                buttonTest: true,
-                validateService: 'This seems not to be a valid service! :('
+                buttonEnterDisabled: true,
+                buttonTestDisabled: true,
+                serviceOutput: 'This seems not to be a valid service! :('
             })
         }
 
@@ -721,9 +688,9 @@ export class InitApp extends React.Component {
             let CPOW = parseCPOW(event.data);
             if(CPOW) {
                 self.setState({
-                    buttonEnter: false,
+                    buttonEnterDisabled: false,
                     socket: _socket,
-                    validateService: 'Nice! It is a valid service! :)',
+                    serviceOutput: 'Nice! It is a valid service! :)',
                     notify: true
                 })
             }
@@ -731,8 +698,8 @@ export class InitApp extends React.Component {
 
         _socket.onerror = function () {
             self.setState({
-                buttonEnter: true,
-                validateService: 'This seems not to be a valid service! :(',
+                buttonEnterDisabled: true,
+                serviceOutput: 'This seems not to be a valid service! :(',
                 notify: true
             })
         };
@@ -743,12 +710,12 @@ export class InitApp extends React.Component {
         // ws://
         if(value.length > 5) {
             this.setState({
-                buttonTest: false,
+                buttonTestDisabled: false,
                 servicePath: value
             });
         }else {
             this.setState({
-                buttonTest: true,
+                buttonTestDisabled: true,
                 servicePath: value
             });
         }
@@ -763,7 +730,7 @@ export class InitApp extends React.Component {
         const theme = createMuiTheme({
             palette: {
                 primary: teal,
-                secondary: grey,
+                secondary: blueGrey,
                 error: red,
                 type: this.state.dnmode
             }
@@ -772,12 +739,12 @@ export class InitApp extends React.Component {
         return (
             <MuiThemeProvider theme={theme}>
                 <span>
-                    <ChattyHeader/>
+                    <Header/>
                     <Service
                         addInternally={this.addInternally}
-                        stateVerificationButton={this.state.buttonTest}
+                        buttonTestDisabled={this.state.buttonTestDisabled}
                         testConnection={this.testConnection}
-                        stateEnterButton={this.state.buttonEnter}
+                        buttonEnterDisabled={this.state.buttonEnterDisabled}
                         addServiceAddress={this.addServiceAddress}
                     />
                     <Snackbar
@@ -787,7 +754,7 @@ export class InitApp extends React.Component {
                         SnackbarContentProps={{
                             'aria-describedby': 'validate-service',
                         }}
-                        message={<span id='validate-service'>{this.state.validateService}</span>}
+                        message={<span id='validate-service'>{this.state.serviceOutput}</span>}
                     />
                 </span>
             </MuiThemeProvider>
@@ -796,6 +763,14 @@ export class InitApp extends React.Component {
 }
 
 ReactDOM.render(
-    <InitApp dnmode='light'/>,
+    <InitApp
+        socket={null}
+        servicePath=''
+        buttonTestDisabled={true}
+        buttonEnterDisabled={true}
+        serviceOutput={'Welcome to Chatty!'}
+        notify={true}
+        dnmode={getDnMode()}
+    />,
     document.getElementById('app')
 );

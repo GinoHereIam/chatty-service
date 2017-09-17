@@ -146,11 +146,13 @@ fun Application.module() {
 
                                 ActionType.USER_DISCONNECT -> {
                                     val asyncDisconnect = launch(CommonPool) {
+                                        println("Close connection to client!")
                                         // TODO Make user shown online
-                                        protocol.header.setAdditionalText = "You are offline now!"
+                                        protocol.responseType = ResponseType.SUCCESS
+                                        protocol.header.setAdditionalText = "[chatty-service]: You are offline now!"
                                         val response = parseCPOW(protocol).toJsonString()
                                         session.send(Frame.Text(response))
-                                        close(CloseReason(CloseReason.Codes.NORMAL, "client left"))
+                                        //close(CloseReason(CloseReason.Codes.GOING_AWAY, "client left"))
                                     }
                                 }
 

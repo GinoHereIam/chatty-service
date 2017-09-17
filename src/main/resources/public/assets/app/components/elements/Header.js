@@ -9,22 +9,28 @@ const styles = theme => ({
         paddingTop: theme.spacing.unit * 3,
         paddingBottom: theme.spacing.unit * 3,
         marginBottom: '5%',
-        textAlign: 'center'
+        textAlign: 'center',
+        background: theme.palette.primary[500],
     }),
+    text: {
+        color: theme.palette.secondary[100]
+    }
 });
 
-function ChattyHeader(props) {
+function Header(props) {
     const classes = props.classes;
     return(
         <Paper className={classes.root} elevation={4} square={true}>
-            <Typography type='display1'>Chatty</Typography>
-            <Typography type='subheading' component='p'>Your own communication channel! Your own cloud chat service!</Typography>
+            <Typography type='display1' className={classes.text}>Chatty</Typography>
+            <Typography type='subheading'
+                        className={classes.text}
+                        component='p'>Your own communication channel! Your own cloud chat service!</Typography>
         </Paper>
     )
 }
 
-ChattyHeader.propTypes = {
+Header.propTypes = {
     classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(ChattyHeader)
+export default withStyles(styles)(Header)
