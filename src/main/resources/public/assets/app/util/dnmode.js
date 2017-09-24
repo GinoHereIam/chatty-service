@@ -9,7 +9,7 @@ export function getDnMode() {
     let winterTimeMorning = 8;
     let summerTimeMorning = 6;
     // Dark time of your life
-    let winterTimeEvening = 17;
+    let winterTimeEvening = 19;
     let summerTimeEvening = 21;
 
     // For Winter time
