@@ -9,10 +9,12 @@ import ExpandMore from 'material-ui-icons/ExpandMore'
 // Transitions
 import Collapse from 'material-ui/transitions/Collapse';
 import {
-    withStyles, AppBar, Toolbar,
+    AppBar, Toolbar,
     Typography, List, ListItemText, ListItemIcon, ListItem, Drawer, Switch,
-    Divider, ListItemSecondaryAction
+    Divider, ListItemSecondaryAction, Input
 } from "material-ui";
+
+import { withStyles } from "material-ui/styles";
 
 const drawerWidth = 240;
 const styles = theme => ({
@@ -64,6 +66,9 @@ function ChattyAppBar(props) {
                         }}>
                     <div className={classes.drawerHeader} />
                     <List>
+                        <ListItem>
+                            <Input placeholder={'Search for your friend!'} onChange={props.userLookup}/>
+                        </ListItem>
                         <ListItem button>
                             <ListItemText primary="Settings"/>
                         </ListItem>
@@ -110,6 +115,8 @@ function ChattyAppBar(props) {
 
 ChattyAppBar.propTypes = {
     classes: PropTypes.object.isRequired,
+    // Find a friend
+    userLookup: PropTypes.func.isRequired,
     // Logout function
     logout: PropTypes.func.isRequired,
     // Show contacts sublist

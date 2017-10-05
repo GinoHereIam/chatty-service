@@ -39,3 +39,7 @@ html, body {
     -moz-osx-font-smoothing: grayscale;
     font-feature-settings: 'liga';
 }
+
+a, a::after {
+    color: white;
+}

@@ -1,8 +1,8 @@
 
-import {Paper, Typography} from "material-ui";
+import { Paper, Typography} from "material-ui";
+import { withStyles } from "material-ui/styles"
 import React from 'react';
 import PropTypes from 'prop-types';
-import { withStyles } from 'material-ui/styles';
 
 const styles = theme => ({
     root: theme.mixins.gutters({
@@ -33,4 +33,4 @@ Header.propTypes = {
     classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(Header)
+export default withStyles(styles)(Header);

@@ -9,7 +9,7 @@ import org.joda.time.DateTime
 import java.util.*
 
 /**
- * Created by gino on 30.06.17.
+ * Created by GinoHereIam on 30.06.17.
  *
  */
 
@@ -29,12 +29,10 @@ val message_content_maxLength = 1024
 val password_hash_length = 512
 
 // TODO add isConnected state
-data class User(
-        // Add more user properties here
-        val conn: DefaultWebSocketSession?,
-        val sessionID: UUID,
-        val minimumLength: Int = user_minimumLength
-) {
+class User {
+    // Set user minimum length
+    val minimumLength: Int = user_minimumLength
+
     // Unique user name | it's for login
     var username: String = ""
         get
@@ -68,6 +66,7 @@ enum class ResponseType {
 
 enum class ActionType {
     // Actions to friends
+    USER_FIND_FRIEND,
     USER_ADD_FRIEND,
     USER_DELETE_FRIEND,
 
@@ -107,7 +106,7 @@ data class Version(
         val service: String = "Alpha",
         val client: String = "0.0.0",
         val license: String = "MIT License",
-        val homepage: String = "TO CREATE!",
+        val homepage: String = "https://gitbucket.gino-atlas.de/Chatty/chatty-service",
         val thirdParties: String = "ReactJS, Material-Ui & Google material icons"
 )
 
@@ -204,9 +203,6 @@ suspend fun parseCPOW(protocol: CPoW): JsonArray<Any?> {
                 obj(
                         "user" to array(
                                 obj(
-                                        "sessionID" to protocol.user.sessionID.toString()
-                                ),
-                                obj(
                                         "username" to protocol.user.username
                                 ),
                                 obj(
@@ -226,7 +222,6 @@ suspend fun parseCPOW(protocol: CPoW): JsonArray<Any?> {
                                 if (protocol.contacts.size > 0) {
                                     protocol.contacts.forEach {
                                         obj("contacts" to arrayListOf(it.name))
-                                        obj("sessions" to arrayListOf(it.sessionID.toString()))
                                     }
                                 } else {
                                     obj("contacts" to array())

@@ -51,4 +51,4 @@ Service.propTypes = {
     buttonEnterDisabled: PropTypes.bool.isRequired,
 };
 
-export default withStyles(styles)(Service)
+export default withStyles(styles)(Service);

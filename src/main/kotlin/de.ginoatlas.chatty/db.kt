@@ -98,3 +98,15 @@ fun dbFindNameByUsername(username: String): String {
     }
     return name
 }
+
+/*
+fun dbFindUserObjectByUsername(username: String): User {
+    transaction {
+        Users.select {
+            Users.username.eq(username)
+        }.forEach {
+            return it as User
+        }
+    }
+}
+*/

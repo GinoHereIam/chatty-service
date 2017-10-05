@@ -6,8 +6,9 @@ import { teal, blueGrey, red } from 'material-ui/colors'
 
 import { FormControlLabel, AppBar, Drawer, Input,
     Card, CardActions, CardContent, CardHeader, CardMedia, Button,
-    ButtonBase, MuiThemeProvider, createMuiTheme, withStyles, Paper, Switch, TextField, Typography, Snackbar, Dialog, DialogTitle,
+    ButtonBase, MuiThemeProvider, withTheme, Paper, Switch, TextField, Typography, Snackbar, Dialog, DialogTitle,
     DialogContent, DialogContentText, DialogActions} from 'material-ui';
+import { createMuiTheme } from 'material-ui'
 import Slide from "material-ui/transitions/Slide"
 
 // React
@@ -53,11 +54,10 @@ function parseCPOW(event) {
 
     const responseType = CPOW[4].responseType;
     const user = {
-        sessionID: CPOW[5].user[0].sessionID,
-        username: CPOW[5].user[1].username,
-        name: CPOW[5].user[2].name,
-        token: CPOW[5].user[3].token,
-        minimumLength: CPOW[5].user[4].minimumLength
+        username: CPOW[5].user[0].username,
+        name: CPOW[5].user[1].name,
+        token: CPOW[5].user[2].token,
+        minimumLength: CPOW[5].user[3].minimumLength
     };
 
     // CPOW[6] doesn't matter for now
@@ -134,6 +134,18 @@ class Chatty extends React.Component {
         this.setState({ openContacts: !this.state.openContacts });
     };
 
+    userLookup = event => {
+        let value = event.target.value;
+        //let length = value.length;
+
+        let findAFriendObj = {
+            actionType: "USER_FIND_FRIEND",
+            header: value
+        };
+
+        let json = JSON.stringify(findAFriendObj);
+        this.state.socket.send(json);
+    };
 
     render() {
         // Set theme
@@ -161,16 +173,11 @@ class Chatty extends React.Component {
                 serviceOutput: CPOW.header.additionalText
             });
 
+            //IMPORTANT Query results here!
+
+            // Result of logout
             if(self.state.CPOW.responseType === 'SUCCESS' && self.state.CPOW.actionType === 'USER_DISCONNECT') {
                 this.state.socket.close();
-
-                let app = document.getElementById('app');
-
-                // Remove Everything!
-                while(app.firstChild) {
-                    app.removeChild(app.firstChild)
-                }
-
 
                 ReactDOM.render(
                     <InitApp dnmode={self.state.dnmode}
@@ -182,7 +189,21 @@ class Chatty extends React.Component {
                              notify={self.state.notify}/>,
                     document.getElementById('app')
                 )
+            }
 
+            // Result of user lookup
+            if(self.state.CPOW.responseType === 'SUCCESS' && self.state.CPOW.actionType === 'USER_FIND_FRIEND') {
+                // TODO Open a result dialog with the corresponding user
+                self.setState({
+                    notify: true,
+                    serviceOutput: self.state.CPOW.header.additionalText
+                })
+            }
+            if(self.state.CPOW.responseType === 'FAILURE' && self.state.CPOW.actionType === 'USER_FIND_FRIEND') {
+                self.setState({
+                    notify: true,
+                    serviceOutput: 'Sorry, it was not possible to find the user!'
+                })
             }
         };
 
@@ -205,6 +226,7 @@ class Chatty extends React.Component {
                             this.setState({dnmode: 'dark'}) : this.setState({dnmode: 'light'})
                         }}
                         switchStyleChecked={this.state.dnmode === 'dark'}
+                        userLookup={this.userLookup}
                     />
                     <Dialog
                         open={this.state.showAbout}
@@ -217,7 +239,7 @@ class Chatty extends React.Component {
                                 <b>Author</b>: {this.state.CPOW.version.author} <br/>
                                 <b>Service version</b>: {this.state.CPOW.version.service} <br/>
                                 <b>Client version</b>: {this.state.CPOW.version.client} <br/>
-                                <b>Homepage</b>: {this.state.CPOW.version.homepage} <br/>
+                                <b>Homepage</b>: <a href={this.state.CPOW.version.homepage} target={'_blank'}>{this.state.CPOW.version.homepage}</a> <br/>
                                 <b>3rdParties</b>: {this.state.CPOW.version.thirdParties} <br/>
                                 <b>License</b>: {this.state.CPOW.version.license} <br/>
                             </DialogContentText>
@@ -298,18 +320,11 @@ class Login extends React.Component {
             });
 
             if (self.state.CPOW.responseType === "SUCCESS" && self.state.CPOW.actionType === "USER_LOGIN_ACCOUNT") {
-                let app = document.getElementById('app');
-
-                // Remove Everything!
-                while(app.firstChild) {
-                    app.removeChild(app.firstChild)
-                }
-
                 // Render chat
                 ReactDOM.render(
                     <Chatty state={self.state} />,
                     document.getElementById('app')
-                )
+                );
             }
         };
 

@@ -42,4 +42,4 @@ LoginElements.propTypes = {
     onChangePassword: PropTypes.func.isRequired
 };
 
-export default withStyles(styles)(LoginElements)
+export default withStyles(styles)(LoginElements);

@@ -68,7 +68,7 @@ fun Application.module() {
             val header = Header()
             val action: ActionType = ActionType.NONE
             val response: ResponseType = ResponseType.NONE
-            val user = User(this, id)
+            val user = User()
 
             var protocol: CPoW = CPoW(
                     // Contains information about version and so on
@@ -101,15 +101,15 @@ fun Application.module() {
                         val message = frame.readText()
 
                         val stringBuilder = StringBuilder(message)
-                        val cpow = parser.parse(stringBuilder) as JsonObject
+                        val CPOW = parser.parse(stringBuilder) as JsonObject
                         try {
                             // Get message
-                            val actionType: ActionType = ActionType.valueOf(cpow["actionType"] as String)
+                            val actionType: ActionType = ActionType.valueOf(CPOW["actionType"] as String)
                             val timestamp: DateTime = DateTime.now()
 
                             var content = ""
-                            if (cpow["content"] !== null) {
-                                content = cpow["content"] as String
+                            if (CPOW["content"] !== null) {
+                                content = CPOW["content"] as String
                             }
 
                             /*
@@ -138,7 +138,7 @@ fun Application.module() {
                                     val asyncConnect = launch(CommonPool) {
                                         // TODO Make user shown online
                                         protocol.responseType = ResponseType.SUCCESS
-                                        protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.sessionID} is connected!"
+                                        protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.username} is connected!"
                                         val response = parseCPOW(protocol).toJsonString()
                                         session.send(Frame.Text(response))
                                     }
@@ -158,7 +158,7 @@ fun Application.module() {
 
                                 ActionType.USER_CREATE_CHAT -> {
                                     val asyncChatCreation = launch(CommonPool) {
-                                        val participant = cpow["participant"] as String
+                                        val participant = CPOW["participant"] as String
 
                                         // Create a chat
                                         val chat: Chat = Chat()
@@ -193,9 +193,9 @@ fun Application.module() {
                                     val asyncAuth = launch(CommonPool) {
 
                                         // Set credentials
-                                        auth.username = cpow["username"] as String
-                                        auth.name = cpow["name"] as String
-                                        auth.password = cpow["password"] as String
+                                        auth.username = CPOW["username"] as String
+                                        auth.name = CPOW["name"] as String
+                                        auth.password = CPOW["password"] as String
                                         protocol = auth.register()
 
                                         val response = parseCPOW(protocol).toJsonString()
@@ -207,14 +207,24 @@ fun Application.module() {
                                     val asyncAuth = launch(CommonPool) {
 
                                         // Set credentials
-                                        auth.username = cpow["username"] as String
-                                        auth.password = cpow["password"] as String
+                                        auth.username = CPOW["username"] as String
+                                        auth.password = CPOW["password"] as String
                                         protocol = auth.login()
 
                                         if (protocol.user.token.toString() != "") {
                                             val response = parseCPOW(protocol).toJsonString()
                                             session.send(Frame.Text(response))
                                         }
+                                    }
+                                }
+
+                                ActionType.USER_FIND_FRIEND -> {
+                                    val asyncSearchFriend = launch(CommonPool) {
+                                        // TODO return name and picture of user
+
+                                        protocol.header.additionalText = "This is your search result!"
+                                        val responseFriend = parseCPOW(protocol).toJsonString()
+                                        session.send(Frame.Text(responseFriend))
                                     }
                                 }
 
