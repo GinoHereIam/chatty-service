@@ -12,7 +12,12 @@ const styles = theme => ({
         textAlign: 'center',
         background: theme.palette.primary[500],
     }),
-    text: {
+    header: {
+        fontSize: '2.2em',
+        color: theme.palette.secondary[100]
+    },
+    subheader: {
+        fontSize: '1.3em',
         color: theme.palette.secondary[100]
     }
 });
@@ -20,10 +25,10 @@ const styles = theme => ({
 function Header(props) {
     const classes = props.classes;
     return(
-        <Paper className={classes.root} elevation={4} square={true}>
-            <Typography type='display1' className={classes.text}>Chatty</Typography>
+        <Paper className={classes.root} elevation={2} square={true}>
+            <Typography type='display1' className={classes.header}>Chatty</Typography>
             <Typography type='subheading'
-                        className={classes.text}
+                        className={classes.subheader}
                         component='p'>Your own communication channel! Your own cloud chat service!</Typography>
         </Paper>
     )

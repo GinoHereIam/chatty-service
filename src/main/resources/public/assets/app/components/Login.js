@@ -12,14 +12,18 @@ const styles = theme => ({
         marginBottom: theme.spacing.unit * 3,
         textAlign: 'center'
     }),
-
+    legend: {
+        fontSize: '1.3em',
+        margin: 0,
+        paddingBottom: 16
+    }
 });
 
 export function LoginElements(props) {
     const classes = props.classes;
     return(
         <Paper className={classes.root}>
-            <FormLabel component='legend'>Login</FormLabel>
+            <FormLabel component='legend' className={classes.legend}>Login</FormLabel>
             <form onSubmit={props.loginSubmit}>
                 <FormControlLabel control={
                     <TextField className="username"

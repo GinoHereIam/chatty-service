@@ -12,7 +12,11 @@ const styles = theme => ({
         marginBottom: theme.spacing.unit * 3,
         textAlign: 'center'
     }),
-
+    legend: {
+        fontSize: '1.3em',
+        margin: 0,
+        paddingBottom: 16
+    }
 });
 
 // Register
@@ -20,7 +24,7 @@ function RegisterElements(props) {
     const classes = props.classes;
     return (
         <Paper className={classes.root}>
-            <FormLabel component='legend'>Register</FormLabel>
+            <FormLabel component='legend' className={classes.legend}>Register</FormLabel>
             <form onSubmit={props.registerSubmit}>
                 <FormControlLabel control={
                     <TextField className="username"
