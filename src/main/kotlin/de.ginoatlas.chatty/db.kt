@@ -43,7 +43,13 @@ fun setupDB() {
     }
 }
 
-/* Return userID */
+/**
+ * Insert a user to the database
+ * @param username
+ * @param name
+ * @param password
+ * @return get the user id which is equal to the database index
+ */
 fun dbRegister(username: String, name: String, password: String): Int {
     var userID: Int = -1
     transaction {
@@ -57,7 +63,11 @@ fun dbRegister(username: String, name: String, password: String): Int {
     return userID
 }
 
-/* Return userID */
+/**
+ * @param username
+ * @param password
+ * @return the user id
+ */
 fun dbLogin(username: String, password: String): Int {
     var userID: Int = -1
     transaction {
@@ -72,6 +82,10 @@ fun dbLogin(username: String, password: String): Int {
     return userID
 }
 
+/**
+ * @param username
+ * @return the user id
+ */
 fun dbFindUserByUsername(username: String): Int {
     var userID: Int = -1
     transaction {
@@ -84,8 +98,25 @@ fun dbFindUserByUsername(username: String): Int {
     return userID
 }
 
-/*
-    returns display name
+/**
+ * @param username
+ * @return get a list of usernames which matches the input
+ */
+fun getListOfMatchedUsername(username: String, currentUser: String): MutableList<String> {
+    val listOfUsers: MutableList<String> = mutableListOf()
+    transaction {
+        Users.selectAll().forEach {
+            if(it[Users.username].contains(username) && ! it[Users.username].contains(currentUser)) {
+                listOfUsers.add(it[Users.username])
+            }
+        }
+    }
+    return listOfUsers
+}
+
+/**
+ * @param username
+ * @return returns the name
  */
 fun dbFindNameByUsername(username: String): String {
     var name = ""
@@ -98,6 +129,11 @@ fun dbFindNameByUsername(username: String): String {
     }
     return name
 }
+
+/**
+ * @param username
+ * @return the user object
+ */
 
 /*
 fun dbFindUserObjectByUsername(username: String): User {

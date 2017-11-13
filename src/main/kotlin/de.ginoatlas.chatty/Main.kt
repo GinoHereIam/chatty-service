@@ -132,6 +132,7 @@ fun Application.module() {
                             protocol.contacts = mutableListOf()
                             protocol.chats = mutableListOf()
                             protocol.actionType = actionType
+                            protocol.userList = mutableListOf()
 
                             when (actionType) {
                                 ActionType.USER_CONNECT -> {
@@ -222,7 +223,17 @@ fun Application.module() {
                                     val asyncSearchFriend = launch(CommonPool) {
                                         // TODO return name and picture of user
 
-                                        protocol.header.additionalText = "This is your search result!"
+                                        val searchedUser = CPOW["header"] as String
+                                        val currentUser = protocol.user.username
+
+                                        val getListOfUsernames: MutableList<String> = mutableListOf()
+
+                                        if(searchedUser.isNotEmpty()) {
+                                            // Get array of possible uers
+                                            getListOfUsernames.addAll(getListOfMatchedUsername(searchedUser, currentUser))
+                                        }
+
+                                        protocol.userList = getListOfUsernames
                                         val responseFriend = parseCPOW(protocol).toJsonString()
                                         session.send(Frame.Text(responseFriend))
                                     }

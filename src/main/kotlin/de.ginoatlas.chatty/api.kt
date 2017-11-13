@@ -148,6 +148,10 @@ data class CPoW(
         get
         set
 
+    lateinit var userList: MutableList<String>
+        get
+        set
+
 }
 
 suspend fun parseCPOW(protocol: CPoW): JsonArray<Any?> {
@@ -247,6 +251,11 @@ suspend fun parseCPOW(protocol: CPoW): JsonArray<Any?> {
                 obj(
                         "password" to array(
                             obj("minimumLength" to protocol.password.minimumLength)
+                        )
+                ),
+                obj(
+                        "userList" to array(
+                                protocol.userList
                         )
                 )
         )

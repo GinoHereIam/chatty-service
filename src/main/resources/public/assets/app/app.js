@@ -2,12 +2,14 @@
 import "./style.css";
 import 'typeface-roboto'
 // Material-ui
-import { teal, blueGrey, red } from 'material-ui/colors'
+import { teal, blueGrey, red, blue } from 'material-ui/colors'
 
-import { FormControlLabel, AppBar, Drawer, Input,
+import {
+    FormControlLabel, AppBar, Drawer, Input,
     Card, CardActions, CardContent, CardHeader, CardMedia, Button,
     ButtonBase, MuiThemeProvider, withTheme, Paper, Switch, TextField, Typography, Snackbar, Dialog, DialogTitle,
-    DialogContent, DialogContentText, DialogActions} from 'material-ui';
+    DialogContent, DialogContentText, DialogActions, List, ListItem, ListItemAvatar, Avatar, ListItemText
+} from 'material-ui';
 import { createMuiTheme } from 'material-ui'
 import Slide from "material-ui/transitions/Slide"
 
@@ -25,6 +27,7 @@ import LoginElements from "./components/Login"
 import Chat from "./components/Chat"
 import {getDnMode} from "./util/dnmode"
 import ChattyAppBar from './components/elements/AppBar'
+import Userearch from './components/Usersearch'
 
 // Functions
 function parseCPOW(event) {
@@ -70,6 +73,8 @@ function parseCPOW(event) {
         minimumLength: CPOW[8].password[0].minimumLength
     };
 
+    const userList = CPOW[9].userList;
+
     return {
         version: version,
         actionType: actionType,
@@ -78,7 +83,8 @@ function parseCPOW(event) {
         responseType: responseType,
         user: user,
         chats: chats,
-        password: password
+        password: password,
+        userList: userList
     };
 }
 
@@ -96,6 +102,12 @@ class Chatty extends React.Component {
             menuOpen: false,
             showAbout: false,
             openContacts: false,
+            showUserSearch: false,
+            /**
+             * It contains {'username': base64_image_blob}, actual type has to be updated when images are available
+             * @type {[]}
+             */
+            foundUser: []
         };
 
         this.openChat = this.openChat.bind(this);
@@ -147,6 +159,14 @@ class Chatty extends React.Component {
         this.state.socket.send(json);
     };
 
+    submitUser = name => event => {
+        console.log("You clicked: " + name);
+    };
+
+    handleCloseUserSearch = event => {
+        this.setState({ showUserSearch: false })
+    };
+
     render() {
         // Set theme
         const theme = createMuiTheme({
@@ -155,7 +175,7 @@ class Chatty extends React.Component {
                 secondary: blueGrey,
                 error: red,
                 type: this.state.dnmode,
-            },
+            }
         });
 
         // Actual this to access this.setState({})
@@ -168,14 +188,16 @@ class Chatty extends React.Component {
                 CPOW: CPOW
             });
 
-            self.setState({
-                notify: true,
-                serviceOutput: CPOW.header.additionalText
-            });
-
             //IMPORTANT Query results here!
 
-            // Result of logout
+            // Result of
+            if(self.state.CPOW.actionType === 'USER_LOGIN_ACCOUNT') {
+                self.setState({
+                    notify: true,
+                    serviceOutput: CPOW.header.additionalText
+                });
+            }
+
             if(self.state.CPOW.responseType === 'SUCCESS' && self.state.CPOW.actionType === 'USER_DISCONNECT') {
                 this.state.socket.close();
 
@@ -194,15 +216,19 @@ class Chatty extends React.Component {
             // Result of user lookup
             if(self.state.CPOW.responseType === 'SUCCESS' && self.state.CPOW.actionType === 'USER_FIND_FRIEND') {
                 // TODO Open a result dialog with the corresponding user
+                console.log('User search result');
+                console.log(self.state.CPOW.userList);
+
                 self.setState({
-                    notify: true,
-                    serviceOutput: self.state.CPOW.header.additionalText
+                    showUserSearch: true,
+                    foundUser: self.state.CPOW.userList
                 })
             }
+
             if(self.state.CPOW.responseType === 'FAILURE' && self.state.CPOW.actionType === 'USER_FIND_FRIEND') {
                 self.setState({
                     notify: true,
-                    serviceOutput: 'Sorry, it was not possible to find the user!'
+                    serviceOutput: 'Something bad happen while searching for user! :('
                 })
             }
         };
@@ -211,6 +237,13 @@ class Chatty extends React.Component {
             self.setState({
                 notify: true,
                 serviceOutput: 'No connection to service.'
+            });
+        };
+
+        this.state.socket.onopen = event =>{
+            self.setState({
+                notify: true,
+                serviceOutput: 'Reconnected to service.'
             });
         };
 
@@ -226,7 +259,7 @@ class Chatty extends React.Component {
                             this.setState({dnmode: 'dark'}) : this.setState({dnmode: 'light'})
                         }}
                         switchStyleChecked={this.state.dnmode === 'dark'}
-                        userLookup={this.userLookup}
+                        openUserSearch={() => this.setState({ showUserSearch: true })}
                     />
                     <Dialog
                         open={this.state.showAbout}
@@ -245,6 +278,13 @@ class Chatty extends React.Component {
                             </DialogContentText>
                         </DialogContent>
                     </Dialog>
+                    <Userearch
+                        showUserSearch={this.state.showUserSearch}
+                        onRequestClose={this.handleCloseUserSearch}
+                        userLookup={this.userLookup}
+                        foundUser={this.state.foundUser}
+                        submitUser={this.submitUser}
+                    />
                     <Snackbar
                         open={this.state.notify}
                         onRequestClose={this.handleSnackbarClose}
@@ -252,6 +292,7 @@ class Chatty extends React.Component {
                         SnackbarContentProps={{
                             'aria-describedby': 'service-message',
                         }}
+                        autoHideDuration={3000}
                         message={<span id='service-message'>{this.state.serviceOutput}</span>}
                     />
                 </span>
@@ -341,6 +382,7 @@ class Login extends React.Component {
                     SnackbarContentProps={{
                         'aria-describedby': 'service-message',
                     }}
+                    autoHideDuration={5000}
                     message={<span id='service-message'>{this.state.serviceOutput}</span>}
                 />
             </div>
@@ -565,6 +607,7 @@ class Register extends React.Component {
                     SnackbarContentProps={{
                         'aria-describedby': 'service-message',
                     }}
+                    autoHideDuration={5000}
                     message={<span id='service-message'>{this.state.serviceMessage}</span>}
                 />
             </div>
@@ -769,6 +812,7 @@ export class InitApp extends React.Component {
                         SnackbarContentProps={{
                             'aria-describedby': 'validate-service',
                         }}
+                        autoHideDuration={5000}
                         message={<span id='validate-service'>{this.state.serviceOutput}</span>}
                     />
                 </span>

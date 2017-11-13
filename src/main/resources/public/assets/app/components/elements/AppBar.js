@@ -66,8 +66,8 @@ function ChattyAppBar(props) {
                         }}>
                     <div className={classes.drawerHeader} />
                     <List>
-                        <ListItem>
-                            <Input placeholder={'Search for your friend!'} onChange={props.userLookup}/>
+                        <ListItem button onClick={props.openUserSearch}>
+                            <ListItemText primary={'Search users ...'}/>
                         </ListItem>
                         <ListItem button>
                             <ListItemText primary="Settings"/>
@@ -116,7 +116,6 @@ function ChattyAppBar(props) {
 ChattyAppBar.propTypes = {
     classes: PropTypes.object.isRequired,
     // Find a friend
-    userLookup: PropTypes.func.isRequired,
     // Logout function
     logout: PropTypes.func.isRequired,
     // Show contacts sublist
@@ -128,7 +127,8 @@ ChattyAppBar.propTypes = {
     //drawerHandleOpen: PropTypes.func.isRequired,
     //drawerOnRequestClose: PropTypes.func.isRequired,
     //drawerOpen: PropTypes.bool.isRequired,
-
+    // Open user search dialog
+    openUserSearch: PropTypes.func.isRequired,
     // Switch theme properties
     switchStyleOnClick: PropTypes.func.isRequired,
     switchStyleChecked: PropTypes.bool.isRequired,
