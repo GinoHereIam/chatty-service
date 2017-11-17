@@ -26,7 +26,8 @@ fun Application.module() {
     install(DefaultHeaders)
     install(CallLogging)
     install(WebSockets) {
-        pingPeriod = Duration.ofMinutes(1)
+        pingPeriod = Duration.ofSeconds(1)
+        timeout = Duration.ofSeconds(3)
     }
 
     install(Routing) {
@@ -56,12 +57,13 @@ fun Application.module() {
             // Upon each websocket connection at this endpoint, generate a random id for it
             val id = java.util.UUID.randomUUID()
             val sessionID = call.sessions.get<ChatSession>()
-            val session = this
 
             if ( sessionID == null ) {
                 close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "No session"))
                 return@webSocket
             }
+
+            val session = this
 
             val version = Version()
             val password = Password()
@@ -127,7 +129,10 @@ fun Application.module() {
 
                             // val token: UUID = if (CPOW["token"] == "") UUID.fromString("00000000-0000-0000-0000-000000000000") else UUID.fromString(CPOW["token"] as String)
                             // user.token = token
-
+                            if(CPOW["username"] !== null) {
+                                protocol.user.username = CPOW["username"] as String
+                            }
+                            
                             protocol.message = Message(timestamp, content)
                             protocol.contacts = mutableListOf()
                             protocol.chats = mutableListOf()
@@ -141,6 +146,8 @@ fun Application.module() {
                                         protocol.responseType = ResponseType.SUCCESS
                                         protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.username} is connected!"
                                         val response = parseCPOW(protocol).toJsonString()
+
+                                        call.sessions.set(ChatSession("Connected"))
                                         session.send(Frame.Text(response))
                                     }
                                 }
@@ -225,7 +232,6 @@ fun Application.module() {
 
                                         val searchedUser = CPOW["header"] as String
                                         val currentUser = protocol.user.username
-
                                         val getListOfUsernames: MutableList<String> = mutableListOf()
 
                                         if(searchedUser.isNotEmpty()) {
@@ -234,6 +240,10 @@ fun Application.module() {
                                         }
 
                                         protocol.userList = getListOfUsernames
+                                        if(protocol.userList.size > 0) {
+                                            protocol.responseType = ResponseType.SUCCESS
+                                        }
+
                                         val responseFriend = parseCPOW(protocol).toJsonString()
                                         session.send(Frame.Text(responseFriend))
                                     }
@@ -271,6 +281,7 @@ fun Application.module() {
                 }else {
                     println("[chatty-service]: ${protocol.user.username} disconnected")
                 }
+                call.sessions.clear<ChatSession>()
             }
         }
 

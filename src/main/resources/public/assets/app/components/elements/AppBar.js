@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 // Import Icons
 import Style from 'material-ui-icons/Style';
 import Contacts from 'material-ui-icons/Contacts'
+import PersonIcon  from 'material-ui-icons/Person'
 import StarBorder from 'material-ui-icons/StarBorder'
 import ExpandLess from 'material-ui-icons/ExpandLess'
 import ExpandMore from 'material-ui-icons/ExpandMore'
@@ -11,12 +12,13 @@ import Collapse from 'material-ui/transitions/Collapse';
 import {
     AppBar, Toolbar,
     Typography, List, ListItemText, ListItemIcon, ListItem, Drawer, Switch,
-    Divider, ListItemSecondaryAction, Input
+    Divider, ListItemSecondaryAction, ToolBarGroup, ListItemAvatar, Avatar
 } from "material-ui";
 
 import { withStyles } from "material-ui/styles";
 
-const drawerWidth = 240;
+let drawerWidth = 'auto';
+
 const styles = theme => ({
     root: {
         width: '100%',
@@ -50,12 +52,13 @@ const styles = theme => ({
 
 function ChattyAppBar(props) {
     const { classes } = props;
+    // props.contacts -> ["username", ...]
     return (
         <div className={classes.root}>
             <div className={classes.appFrame}>
                 <AppBar className={classes.appBar}>
                     <Toolbar>
-                        <Typography type="title" color="inherit" noWrap>
+                        <Typography type={'title'} align={'center'} color={'inherit'}>
                             Chatty Webclient
                         </Typography>
                     </Toolbar>
@@ -64,13 +67,15 @@ function ChattyAppBar(props) {
                         classes={{
                             paper: classes.drawerPaper,
                         }}>
-                    <div className={classes.drawerHeader} />
                     <List>
+                        <ListItem>
+                            <Typography type={'title'} noWrap>Hi {props.username}!</Typography>
+                        </ListItem>
                         <ListItem button onClick={props.openUserSearch}>
-                            <ListItemText primary={'Search users ...'}/>
+                            <ListItemText inset primary={'Search friends'}/>
                         </ListItem>
                         <ListItem button>
-                            <ListItemText primary="Settings"/>
+                            <ListItemText inset primary="Settings"/>
                         </ListItem>
                         <ListItem button onClick={props.openSubContacts}>
                             <ListItemIcon>
@@ -80,12 +85,18 @@ function ChattyAppBar(props) {
                             {props.isContactsOpen ? <ExpandLess /> : <ExpandMore />}
                         </ListItem>
                         <Collapse in={ props.isContactsOpen } transitionDuration="auto" unmountOnExit>
-                            <ListItem button className={classes.nested}>
-                                <ListItemIcon>
-                                    <StarBorder />
-                                </ListItemIcon>
-                                <ListItemText inset primary="Starred" />
-                            </ListItem>
+                            {
+                                props.contacts.map(name =>(
+                                    <ListItem button key={name}>
+                                        <ListItemAvatar>
+                                            <Avatar>
+                                                <PersonIcon/>
+                                            </Avatar>
+                                        </ListItemAvatar>
+                                        <ListItemText primary={name}/>
+                                    </ListItem>
+                                ))
+                            }
                         </Collapse>
                     </List>
                         <Divider/>
@@ -93,7 +104,7 @@ function ChattyAppBar(props) {
                             <ListItemIcon>
                                 <Style />
                             </ListItemIcon>
-                            <ListItemText primary="Style" />
+                            <ListItemText inset primary="Style" />
                             <ListItemSecondaryAction>
                                 <Switch
                                     onChange={props.switchStyleOnClick}
@@ -102,10 +113,10 @@ function ChattyAppBar(props) {
                             </ListItemSecondaryAction>
                         </ListItem>
                         <ListItem button onClick={props.logout}>
-                            <Typography>Logout</Typography>
+                            <ListItemText inset primary={'Logout'}/>
                         </ListItem>
                         <ListItem button onClick={props.showAbout}>
-                            <Typography>About Chatty</Typography>
+                            <ListItemText inset primary={'About Chatty'}/>
                         </ListItem>
                 </Drawer>
             </div>
@@ -132,6 +143,8 @@ ChattyAppBar.propTypes = {
     // Switch theme properties
     switchStyleOnClick: PropTypes.func.isRequired,
     switchStyleChecked: PropTypes.bool.isRequired,
+    username: PropTypes.string.isRequired,
+    contacts: PropTypes.array.isRequired
 };
 
 export default withStyles(styles)(ChattyAppBar);

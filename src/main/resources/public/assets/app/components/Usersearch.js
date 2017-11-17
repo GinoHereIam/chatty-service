@@ -22,7 +22,7 @@ function Usersearch(props) {
         <Dialog
             open={props.showUserSearch}
             onRequestClose={props.onRequestClose}
-            transition={<Slide direction="up"/>}>
+            transition={Slide}>
             <DialogTitle>User search</DialogTitle>
             <div>
                 <Input placeholder={'Search for your friend!'} onChange={props.userLookup} className={classes.searchInput}/>

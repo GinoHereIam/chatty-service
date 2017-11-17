@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "watch": "webpack --progress --watch",
-    "start": "webpack-dev-server --open",
+    "start": "webpack-dev-server",
     "build": "webpack"
   },
   "dependencies": {

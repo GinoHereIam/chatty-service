@@ -36,7 +36,13 @@ module.exports = {
                     cacheDirectory: true,
                 }
             },
-            {test: /\.jsx$/, loader: 'babel-loader', exclude: /node_modules/},
+            {
+                test: /\.jsx$/, loader: 'babel-loader',
+                exclude: /node_modules/,
+                query: {
+                    cacheDirectory: true,
+                }
+            },
             {
                 test: /\.(png|svg|jpg|gif)$/,
                 use: [

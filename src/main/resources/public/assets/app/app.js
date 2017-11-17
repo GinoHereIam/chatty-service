@@ -7,7 +7,7 @@ import { teal, blueGrey, red, blue } from 'material-ui/colors'
 import {
     FormControlLabel, AppBar, Drawer, Input,
     Card, CardActions, CardContent, CardHeader, CardMedia, Button,
-    ButtonBase, MuiThemeProvider, withTheme, Paper, Switch, TextField, Typography, Snackbar, Dialog, DialogTitle,
+    ButtonBase, MuiThemeProvider, withTheme, Paper, Switch, TextField, Typography, Dialog, DialogTitle,
     DialogContent, DialogContentText, DialogActions, List, ListItem, ListItemAvatar, Avatar, ListItemText
 } from 'material-ui';
 import { createMuiTheme } from 'material-ui'
@@ -20,6 +20,7 @@ import * as ReactDOM from 'react-dom';
 import ReconnectingWebSocket from "./vendor/reconnecting-websocket.min";
 
 // Own Components
+import ChattySnackbar from "./components/elements/Snackbar";
 import Header from "./components/elements/Header";
 import Service from "./components/Init"
 import RegisterElements from "./components/Register"
@@ -88,12 +89,15 @@ function parseCPOW(event) {
     };
 }
 
+let websocket = null;
+
 class Chatty extends React.Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            socket: props.state.socket,
+            socket: websocket,
+            username: props.state.username,
             CPOW: props.state.CPOW,
             notify: props.state.notify,
             serviceOutput: props.state.serviceOutput,
@@ -107,12 +111,23 @@ class Chatty extends React.Component {
              * It contains {'username': base64_image_blob}, actual type has to be updated when images are available
              * @type {[]}
              */
-            foundUser: []
+            foundUser: [],
+            /**
+             * Contacts list
+             */
+            contacts: []
         };
 
         this.openChat = this.openChat.bind(this);
         this.logout = this.logout.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
+    }
+
+    componentWillMount() {
+        if(this.state.socket == null) {
+            let url = sessionStorage.getItem("socketUrl");
+            this.setState({socket: new ReconnectingWebSocket(url, null, {automaticOpen: true})})
+        }
     }
 
     logout = event => {
@@ -151,16 +166,20 @@ class Chatty extends React.Component {
         //let length = value.length;
 
         let findAFriendObj = {
+            username: this.state.username,
             actionType: "USER_FIND_FRIEND",
             header: value
         };
 
         let json = JSON.stringify(findAFriendObj);
+
         this.state.socket.send(json);
     };
 
     submitUser = name => event => {
-        console.log("You clicked: " + name);
+        if(!this.state.contacts.find((contact) => { return contact === name})) {
+            this.setState({contacts: this.state.contacts.concat([name])})
+        }
     };
 
     handleCloseUserSearch = event => {
@@ -200,6 +219,8 @@ class Chatty extends React.Component {
 
             if(self.state.CPOW.responseType === 'SUCCESS' && self.state.CPOW.actionType === 'USER_DISCONNECT') {
                 this.state.socket.close();
+                // Remove any session cookies!
+                sessionStorage.clear();
 
                 ReactDOM.render(
                     <InitApp dnmode={self.state.dnmode}
@@ -260,12 +281,13 @@ class Chatty extends React.Component {
                         }}
                         switchStyleChecked={this.state.dnmode === 'dark'}
                         openUserSearch={() => this.setState({ showUserSearch: true })}
+                        username={this.state.username}
+                        contacts={this.state.contacts}
                     />
                     <Dialog
                         open={this.state.showAbout}
                         onRequestClose={() => this.setState({ showAbout: false })}
-                        modal={true}
-                        transition={<Slide direction="up" />}>
+                        transition={Slide}>
                         <DialogTitle>Chatty information</DialogTitle>
                         <DialogContent>
                             <DialogContentText>
@@ -285,15 +307,10 @@ class Chatty extends React.Component {
                         foundUser={this.state.foundUser}
                         submitUser={this.submitUser}
                     />
-                    <Snackbar
+                    <ChattySnackbar
                         open={this.state.notify}
                         onRequestClose={this.handleSnackbarClose}
-                        transition={<Slide direction='up' />}
-                        SnackbarContentProps={{
-                            'aria-describedby': 'service-message',
-                        }}
-                        autoHideDuration={3000}
-                        message={<span id='service-message'>{this.state.serviceOutput}</span>}
+                        message={this.state.serviceOutput}
                     />
                 </span>
             </MuiThemeProvider>
@@ -306,7 +323,7 @@ class Login extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            socket: props.socket,
+            socket: websocket,
             username: '',
             password: '',
             CPOW: '',
@@ -361,6 +378,17 @@ class Login extends React.Component {
             });
 
             if (self.state.CPOW.responseType === "SUCCESS" && self.state.CPOW.actionType === "USER_LOGIN_ACCOUNT") {
+                // Set sessionStorage for login to remember it
+                sessionStorage.setItem("isAuthenticated", true);
+
+                const state = {
+                    CPOW: self.state.CPOW,
+                    username: self.state.username,
+                    notify: self.state.notify,
+                    serviceOutput: self.state.serviceOutput
+                }
+                sessionStorage.setItem("state", JSON.stringify(state));
+
                 // Render chat
                 ReactDOM.render(
                     <Chatty state={self.state} />,
@@ -375,15 +403,10 @@ class Login extends React.Component {
                     loginSubmit={this.login}
                     onChangeUsername={this.onChange}
                     onChangePassword={this.onChange}/>
-                <Snackbar
-                    open={this.state.notify}
+                <ChattySnackbar
                     onRequestClose={this.handleSnackbarClose}
-                    transition={<Slide direction='up' />}
-                    SnackbarContentProps={{
-                        'aria-describedby': 'service-message',
-                    }}
-                    autoHideDuration={5000}
-                    message={<span id='service-message'>{this.state.serviceOutput}</span>}
+                    open={this.state.notify}
+                    message={this.state.serviceOutput}
                 />
             </div>
         )
@@ -396,7 +419,7 @@ class Register extends React.Component {
 
         // TODO use helperText to show validation errors
         this.state = {
-            socket: props.socket,
+            socket: websocket,
             CPOW: null,
             username: '',
             name: '',
@@ -600,15 +623,10 @@ class Register extends React.Component {
                     passwordErrorText={this.state.passwordErrorText}
                     passwordInputValue={this.state.password}
                 />
-                <Snackbar
-                    open={this.state.notify}
+                <ChattySnackbar
                     onRequestClose={this.handleSnackbarClose}
-                    transition={<Slide direction='up' />}
-                    SnackbarContentProps={{
-                        'aria-describedby': 'service-message',
-                    }}
-                    autoHideDuration={5000}
-                    message={<span id='service-message'>{this.state.serviceMessage}</span>}
+                    open={this.state.notify}
+                    message={this.state.serviceMessage}
                 />
             </div>
         )
@@ -618,9 +636,11 @@ class Register extends React.Component {
 export class Auth extends React.Component {
     constructor(props) {
         super(props);
+        sessionStorage.setItem("socketUrl", props.address);
+        websocket = new ReconnectingWebSocket(props.address, null, {automaticOpen: true});
 
         this.state = {
-            socket: new ReconnectingWebSocket(props.address, null, {automaticOpen: false}),
+            socket: websocket,
             serviceOutput: '',
             dnmode: props.dnmode
         };
@@ -780,7 +800,7 @@ export class InitApp extends React.Component {
     }
 
     handleSnackbarClose = () => {
-        this.setState({ notify: false });
+        this.setState({notify: false});
     };
 
     render() {
@@ -805,15 +825,10 @@ export class InitApp extends React.Component {
                         buttonEnterDisabled={this.state.buttonEnterDisabled}
                         addServiceAddress={this.addServiceAddress}
                     />
-                    <Snackbar
-                        open={this.state.notify}
+                    <ChattySnackbar
                         onRequestClose={this.handleSnackbarClose}
-                        transition={<Slide direction='up' />}
-                        SnackbarContentProps={{
-                            'aria-describedby': 'validate-service',
-                        }}
-                        autoHideDuration={5000}
-                        message={<span id='validate-service'>{this.state.serviceOutput}</span>}
+                        open={this.state.notify}
+                        message={this.state.serviceOutput}
                     />
                 </span>
             </MuiThemeProvider>
@@ -821,15 +836,25 @@ export class InitApp extends React.Component {
     }
 }
 
-ReactDOM.render(
-    <InitApp
-        socket={null}
-        servicePath=''
-        buttonTestDisabled={true}
-        buttonEnterDisabled={true}
-        serviceOutput={'Welcome to Chatty!'}
-        notify={true}
-        dnmode={getDnMode()}
-    />,
-    document.getElementById('app')
-);
+if(sessionStorage.getItem("isAuthenticated")) {
+    let state = JSON.parse(sessionStorage.getItem("state"));
+
+    // Render chat from web session
+    ReactDOM.render(
+        <Chatty state={state} />,
+        document.getElementById('app')
+    );
+}else {
+    ReactDOM.render(
+        <InitApp
+            socket={null}
+            servicePath=''
+            buttonTestDisabled={true}
+            buttonEnterDisabled={true}
+            serviceOutput={'Welcome to Chatty!'}
+            notify={true}
+            dnmode={getDnMode()}
+        />,
+        document.getElementById('app')
+    );
+}
