@@ -2,16 +2,17 @@
 import {Button, Dialog, DialogTitle, Input, ListItemText, List, ListItem, ListItemAvatar, Avatar} from "material-ui";
 import PersonIcon  from 'material-ui-icons/Person'
 import Slide from "material-ui/transitions/Slide"
+import { teal, blueGrey, red, blue } from 'material-ui/colors'
 
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from 'material-ui/styles';
 
 const styles = theme => ({
-    searchInput: theme.mixins.gutters({
-        padding: 16,
-        textAlign: 'center'
-    }),
+    searchInput: {
+        padding: 30,
+        textAlign: 'center',
+    },
 
 });
 
@@ -20,6 +21,7 @@ function Usersearch(props) {
 
     return (
         <Dialog
+            className={classes.dialog}
             open={props.showUserSearch}
             onRequestClose={props.onRequestClose}
             transition={Slide}>

@@ -17,7 +17,7 @@ import {
 
 import { withStyles } from "material-ui/styles";
 
-let drawerWidth = 'auto';
+let drawerWidth = '200';
 
 const styles = theme => ({
     root: {

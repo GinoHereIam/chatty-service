@@ -128,6 +128,8 @@ class Chatty extends React.Component {
             let url = sessionStorage.getItem("socketUrl");
             this.setState({socket: new ReconnectingWebSocket(url, null, {automaticOpen: true})})
         }
+
+        // TODO Request for friends list
     }
 
     logout = event => {
