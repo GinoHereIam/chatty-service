@@ -2,7 +2,7 @@ group 'de.ginoatlas.chatty'
 version '1.0'
 
 buildscript {
-    ext.kotlin_version = '1.1.51'
+    ext.kotlin_version = '1.2.0'
     ext.msgpack_version = '2.4.1'
     ext.ktor_version = '0.4.0'
 
