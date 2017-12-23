@@ -33,9 +33,12 @@ object Chats : Table() {
 }
 
 fun initDB() {
+    val db = "jdbc:h2:~/.chatty/storage"
+
     // Customize path to database
     dbLogger.info { "Initialize database." }
-    Database.connect("jdbc:h2:~/.chatty/storage", driver = "org.h2.Driver")
+    dbLogger.debug { "Database path: $db" }
+    Database.connect(db, driver = "org.h2.Driver")
 }
 
 fun setupDB() {

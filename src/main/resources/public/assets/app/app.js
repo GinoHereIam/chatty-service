@@ -38,8 +38,6 @@ function parseCPOW(event) {
     let CPOW = JSON.parse(event);
 
     // DEBUG
-    // console.log(CPOW);
-
     const version = {
         author: CPOW[0].version[0].author,
         service: CPOW[0].version[1].service,
@@ -144,10 +142,6 @@ class Chatty extends React.Component {
     };
 
     openChat = event => {
-        //let targetName = event.target.parentNode.classList[1];
-        //let targetName = event.target.name;
-        //console.log('Open chat target: ' + targetName);
-
         // Get messages
         let messages = document.getElementsByClassName('messages');
         messages.innerHTML = 'Your last dummy messages from John Doe!'
@@ -241,9 +235,6 @@ class Chatty extends React.Component {
             // Result of user lookup
             if(self.state.CPOW.responseType === 'SUCCESS' && self.state.CPOW.actionType === 'USER_FIND_FRIEND') {
                 // TODO Open a result dialog with the corresponding user
-                console.log('User search result');
-                console.log(self.state.CPOW.userList);
-
                 self.setState({
                     showUserSearch: true,
                     foundUser: self.state.CPOW.userList
@@ -662,7 +653,6 @@ export class Auth extends React.Component {
         this.state.socket.open();
         this.state.socket.onopen = function (event) {
             let message = JSON.stringify(enableClientOnService);
-            //console.log('open:', event);
             self.state.socket.send(message)
         };
 
@@ -762,7 +752,6 @@ export class InitApp extends React.Component {
             let message = JSON.stringify({
                 "actionType": "USER_CONNECT"
             });
-            //console.log('open:', event);
             self.state.socket.send(message)
         };
 
