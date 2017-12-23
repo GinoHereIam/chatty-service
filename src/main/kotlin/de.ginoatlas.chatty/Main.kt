@@ -6,25 +6,30 @@ import de.ginoatlas.chatty.util.PropertyManager
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.launch
-import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.content.*
-import org.jetbrains.ktor.features.*
-import org.jetbrains.ktor.routing.*
-import org.jetbrains.ktor.sessions.*
-import org.jetbrains.ktor.util.*
-import org.jetbrains.ktor.websocket.*
-import org.jetbrains.ktor.host.*
-import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.jetty.*
+import mu.KotlinLogging
+import io.ktor.application.*
+import io.ktor.content.*
+import io.ktor.features.*
+import io.ktor.routing.*
+import io.ktor.sessions.*
+import io.ktor.util.*
+import io.ktor.websocket.*
+import io.ktor.server.jetty.*
+import io.ktor.server.engine.*
 import org.joda.time.DateTime
 
 import java.time.*
 
 data class ChatSession(val id: String)
+val mainLogger = KotlinLogging.logger {}
 
 fun Application.module() {
     install(DefaultHeaders)
     install(CallLogging)
+    install(Compression)
+    install(CORS) {
+        anyHost()
+    }
     install(WebSockets) {
         pingPeriod = Duration.ofSeconds(1)
         timeout = Duration.ofSeconds(3)
@@ -91,16 +96,15 @@ fun Application.module() {
 
             val auth = Authentication(users, protocol)
 
-            println("Started websocket connection ${DateTime.now().toLocalDateTime()}")
-            println("[$id] a client connected ${call.request.local.host}")
+            mainLogger.info { "Started websocket connection ${DateTime.now().toLocalDateTime()}" }
+            mainLogger.debug { "[$id] a client connected ${call.request.local.host}" }
             users.add(protocol.user)
 
             try {
                 incoming.consumeEach({ frame ->
                     if (frame is Frame.Text) {
-
-                        // println("[$id] client sent us: $message")
                         val message = frame.readText()
+                        mainLogger.trace { "[$id] client sent us: $message" }
 
                         val stringBuilder = StringBuilder(message)
                         val CPOW = parser.parse(stringBuilder) as JsonObject
@@ -139,12 +143,13 @@ fun Application.module() {
                             protocol.actionType = actionType
                             protocol.userList = mutableListOf()
 
+                            mainLogger.trace { "ActionType: $actionType, Protocol: $protocol" }
                             when (actionType) {
                                 ActionType.USER_CONNECT -> {
                                     val asyncConnect = launch(CommonPool) {
                                         // TODO Make user shown online
                                         protocol.responseType = ResponseType.SUCCESS
-                                        protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.username} is connected!"
+                                        protocol.header.setAdditionalText = "[chatty-service]: you are connected!"
                                         val response = parseCPOW(protocol).toJsonString()
 
                                         call.sessions.set(ChatSession("Connected"))
@@ -154,8 +159,9 @@ fun Application.module() {
 
                                 ActionType.USER_DISCONNECT -> {
                                     val asyncDisconnect = launch(CommonPool) {
-                                        println("Close connection to client!")
-                                        // TODO Make user shown online
+                                        mainLogger.info{ "Close connection to client!" }
+
+                                        // TODO Make user shown offline
                                         protocol.responseType = ResponseType.SUCCESS
                                         protocol.header.setAdditionalText = "[chatty-service]: You are offline now!"
                                         val response = parseCPOW(protocol).toJsonString()
@@ -268,18 +274,18 @@ fun Application.module() {
                             }
                         } catch (e: TypeCastException) {
                             // This really shouldn't happen
-                            println(e.printStackTrace())
+                            mainLogger.error { e.printStackTrace() }
                         } catch (e: IllegalArgumentException) {
                             // Happen with wrong action type request
-                            println(e.printStackTrace())
+                            mainLogger.error { e.printStackTrace() }
                         }
                     }
                 })
             }  finally {
-                if (protocol.user.username.isNullOrEmpty()) {
-                    println("[chatty-service]: $id disconnected")
+                if (protocol.user.username.isEmpty()) {
+                    mainLogger.info { "[chatty-service]: $id disconnected" }
                 }else {
-                    println("[chatty-service]: ${protocol.user.username} disconnected")
+                    mainLogger.info { "[chatty-service]: ${protocol.user.username} disconnected" }
                 }
                 call.sessions.clear<ChatSession>()
             }

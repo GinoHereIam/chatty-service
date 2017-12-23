@@ -1,9 +1,10 @@
 package de.ginoatlas.chatty
 
+import mu.KotlinLogging
+import java.nio.charset.Charset
 import java.util.*
 import java.security.MessageDigest
 import kotlin.experimental.and
-
 
 data class Authentication(private val users: MutableList<User>, private val proto: CPoW) {
     // Has to be set always!
@@ -15,6 +16,8 @@ data class Authentication(private val users: MutableList<User>, private val prot
 
     var name: String = ""
         set
+
+    private val logger = KotlinLogging.logger {}
 
     private var encrypted: String = ""
 
@@ -38,6 +41,7 @@ data class Authentication(private val users: MutableList<User>, private val prot
             return proto
         }
 
+        // Check username length
         if (username.length < proto.user.minimumLength || name.length < proto.user.minimumLength) {
             proto.responseType = ResponseType.FAILED
             proto.header.setAdditionalText = "[chatty-service]: Your username/name needs " +
@@ -59,12 +63,12 @@ data class Authentication(private val users: MutableList<User>, private val prot
                 val userID = dbRegister(username, name, encrypted)
                 if(userID != -1) {
                     protocol.user.token = UUID.randomUUID()
-                    // Set server informations
+                    // Set server information
                     protocol.header.setAdditionalText = "[chatty-service]: ${protocol.user.username} is registered!"
                     protocol.responseType = ResponseType.SUCCESS
                     return protocol
                 }else {
-                    // Set server informations
+                    // Set server information
                     protocol.header.setAdditionalText = "[chatty-service]: " +
                             "${protocol.user.username} could not being registered!"
                     protocol.responseType = ResponseType.FAILED
@@ -84,12 +88,14 @@ data class Authentication(private val users: MutableList<User>, private val prot
 
     // TODO return the login token
     suspend fun login(): CPoW {
+        logger.info { "User is logging in." }
         val enc = encrypt(proto)
         val protocol = enc.keys.first()
         val _encrypted = enc.values.first()
 
         val userID = dbLogin(username, _encrypted)
         return if (userID != -1) {
+            logger.info { "Login SUCCESSFUL." }
             protocol.responseType = ResponseType.SUCCESS
             protocol.user.username = username
             // This might be empty, if the user didn't register in same
@@ -99,6 +105,7 @@ data class Authentication(private val users: MutableList<User>, private val prot
                     "${protocol.user.username} has been successfully logged in!"
             protocol
         } else {
+            logger.info { "Login FAILED." }
             protocol.responseType = ResponseType.FAILED
             protocol.user.username = username
             protocol.header.setAdditionalText = "[chatty-service]: " +
@@ -108,10 +115,14 @@ data class Authentication(private val users: MutableList<User>, private val prot
     }
 
     private suspend fun encrypt(prot: CPoW): Map<CPoW, String> {
+        logger.debug { "Encrypting password!" }
+
+        // Decode first password!
+        val passwordDecoded = String(Base64.getDecoder().decode(password), Charset.defaultCharset())
 
         try {
             val MD = MessageDigest.getInstance("SHA-512")
-            MD.update(password.toByteArray())
+            MD.update(passwordDecoded.toByteArray())
 
             val byteData = MD.digest()
 
@@ -126,7 +137,7 @@ data class Authentication(private val users: MutableList<User>, private val prot
 
         } catch (e: Exception) {
             // Let's get the stacktrace, even this should never happen
-            println(e.printStackTrace())
+            logger.error { e.printStackTrace() }
 
             prot.responseType = ResponseType.FAILED
             prot.header.setAdditionalText =

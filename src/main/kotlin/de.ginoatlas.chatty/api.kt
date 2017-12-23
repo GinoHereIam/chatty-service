@@ -3,8 +3,7 @@ package de.ginoatlas.chatty
 // For JSON
 import com.beust.klaxon.JsonArray
 import com.beust.klaxon.json
-import org.eclipse.jetty.websocket.api.Session
-import org.jetbrains.ktor.websocket.DefaultWebSocketSession
+import mu.KotlinLogging
 import org.joda.time.DateTime
 import java.util.*
 
@@ -27,6 +26,8 @@ val user_minimumLength = 4
 val user_maxLength = 15
 val message_content_maxLength = 1024
 val password_hash_length = 512
+
+private val apiLogger = KotlinLogging.logger {}
 
 // TODO add isConnected state
 class User {
@@ -261,8 +262,6 @@ suspend fun parseCPOW(protocol: CPoW): JsonArray<Any?> {
         )
     }
 
-    // TODO just for debugging
-    // println(CPOW.toJsonString(true))
-
+    apiLogger.trace { "CPOW: ${cpow.toJsonString(false)}" }
     return cpow
 }

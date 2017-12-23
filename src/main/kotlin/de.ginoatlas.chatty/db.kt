@@ -1,14 +1,14 @@
 package de.ginoatlas.chatty
 
+import mu.KotlinLogging
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.SchemaUtils.create
-import org.jetbrains.exposed.sql.SchemaUtils.drop
 
 /*
     TODO draw UML model
  */
-
+val dbLogger = KotlinLogging.logger {}
 object Users : Table() {
     val id = integer("id").autoIncrement().primaryKey()
     val username = varchar("username", user_maxLength)
@@ -34,10 +34,12 @@ object Chats : Table() {
 
 fun initDB() {
     // Customize path to database
+    dbLogger.info { "Initialize database." }
     Database.connect("jdbc:h2:~/.chatty/storage", driver = "org.h2.Driver")
 }
 
 fun setupDB() {
+    dbLogger.info { "Set up tables." }
     transaction {
         create(Users, Contacts, Messages, Chats)
     }
@@ -51,6 +53,8 @@ fun setupDB() {
  * @return get the user id which is equal to the database index
  */
 fun dbRegister(username: String, name: String, password: String): Int {
+    dbLogger.debug { "Registering username: $username, name: $name, password: $password" }
+
     var userID: Int = -1
     transaction {
         userID = Users.insert {
@@ -69,6 +73,8 @@ fun dbRegister(username: String, name: String, password: String): Int {
  * @return the user id
  */
 fun dbLogin(username: String, password: String): Int {
+    dbLogger.debug { "Login username: $username, password: $password" }
+
     var userID: Int = -1
     transaction {
         Users.select {
@@ -87,6 +93,8 @@ fun dbLogin(username: String, password: String): Int {
  * @return the user id
  */
 fun dbFindUserByUsername(username: String): Int {
+    dbLogger.debug { "Find username: $username" }
+
     var userID: Int = -1
     transaction {
         Users.select {
@@ -103,9 +111,11 @@ fun dbFindUserByUsername(username: String): Int {
  * @return get a list of usernames which matches the input
  */
 fun getListOfMatchedUsername(username: String, currentUser: String): MutableList<String> {
+    dbLogger.debug { "Matching username: $username, currentUser: $currentUser" }
     val listOfUsers: MutableList<String> = mutableListOf()
     transaction {
         Users.selectAll().forEach {
+            // Get the looked up username but not the own one
             if(it[Users.username].contains(username) && ! it[Users.username].contains(currentUser)) {
                 listOfUsers.add(it[Users.username])
             }
@@ -119,6 +129,8 @@ fun getListOfMatchedUsername(username: String, currentUser: String): MutableList
  * @return returns the name
  */
 fun dbFindNameByUsername(username: String): String {
+    dbLogger.debug { "Find name by username: $username" }
+
     var name = ""
     transaction {
         Users.select {

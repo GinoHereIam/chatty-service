@@ -1,15 +1,17 @@
-<configuration>
+<configuration debug="true" scan="true">
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{YYYY-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <root level="trace">
+    <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>
 
+    <!-- Chatty-Service -->
+    <logger name="de.ginoatlas.chatty" level="TRACE"/>
+    <!-- Webserver -->
     <logger name="org.eclipse.jetty" level="INFO"/>
     <logger name="io.netty" level="INFO"/>
-
 </configuration>
