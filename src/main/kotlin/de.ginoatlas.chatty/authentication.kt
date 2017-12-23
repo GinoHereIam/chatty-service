@@ -117,10 +117,9 @@ data class Authentication(private val users: MutableList<User>, private val prot
     private suspend fun encrypt(prot: CPoW): Map<CPoW, String> {
         logger.debug { "Encrypting password!" }
 
-        // Decode first password!
-        val passwordDecoded = String(Base64.getDecoder().decode(password), Charset.defaultCharset())
-
         try {
+            // Decode first password!
+            val passwordDecoded = String(Base64.getDecoder().decode(password), Charset.defaultCharset())
             val MD = MessageDigest.getInstance("SHA-512")
             MD.update(passwordDecoded.toByteArray())
 

@@ -41,5 +41,6 @@ html, body {
 }
 
 a, a::after {
-    color: white;
+    text-decoration: none;
+    color: slategrey;
 }

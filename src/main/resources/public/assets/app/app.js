@@ -2,7 +2,7 @@
 import "./style.css";
 import 'typeface-roboto'
 // Material-ui
-import { teal, blueGrey, red, blue } from 'material-ui/colors'
+import { blueGrey, red, grey } from 'material-ui/colors'
 
 import {
     FormControlLabel, AppBar, Drawer, Input,
@@ -10,8 +10,8 @@ import {
     ButtonBase, MuiThemeProvider, withTheme, Paper, Switch, TextField, Typography, Dialog, DialogTitle,
     DialogContent, DialogContentText, DialogActions, List, ListItem, ListItemAvatar, Avatar, ListItemText
 } from 'material-ui';
-import { createMuiTheme } from 'material-ui'
-import Slide from "material-ui/transitions/Slide"
+import { createMuiTheme } from 'material-ui';
+import Slide from "material-ui/transitions/Slide";
 
 // React
 import * as React from 'react';
@@ -22,13 +22,15 @@ import ReconnectingWebSocket from "./vendor/reconnecting-websocket.min";
 // Own Components
 import ChattySnackbar from "./components/elements/Snackbar";
 import Header from "./components/elements/Header";
-import Service from "./components/Init"
-import RegisterElements from "./components/Register"
-import LoginElements from "./components/Login"
-import Chat from "./components/Chat"
-import {getDnMode} from "./util/dnmode"
-import ChattyAppBar from './components/elements/AppBar'
-import Userearch from './components/Usersearch'
+import Service from "./components/Init";
+import RegisterElements from "./components/Register";
+import LoginElements from "./components/Login";
+import Chat from "./components/Chat";
+import {getDnMode} from "./util/dnmode";
+import ChattyAppBar from './components/elements/AppBar';
+import Usersearch from './components/Usersearch';
+import {Version} from './util/version';
+import {encrypt} from "./util/encrypt";
 
 // Functions
 function parseCPOW(event) {
@@ -192,8 +194,8 @@ class Chatty extends React.Component {
         // Set theme
         const theme = createMuiTheme({
             palette: {
-                primary: teal,
-                secondary: blueGrey,
+                primary: blueGrey,
+                secondary: grey,
                 error: red,
                 type: this.state.dnmode,
             }
@@ -295,14 +297,14 @@ class Chatty extends React.Component {
                             <DialogContentText>
                                 <b>Author</b>: {this.state.CPOW.version.author} <br/>
                                 <b>Service version</b>: {this.state.CPOW.version.service} <br/>
-                                <b>Client version</b>: {this.state.CPOW.version.client} <br/>
+                                <b>Client version</b>: {Version.client} <br/>
                                 <b>Homepage</b>: <a href={this.state.CPOW.version.homepage} target={'_blank'}>{this.state.CPOW.version.homepage}</a> <br/>
                                 <b>3rdParties</b>: {this.state.CPOW.version.thirdParties} <br/>
                                 <b>License</b>: {this.state.CPOW.version.license} <br/>
                             </DialogContentText>
                         </DialogContent>
                     </Dialog>
-                    <Userearch
+                    <Usersearch
                         showUserSearch={this.state.showUserSearch}
                         onRequestClose={this.handleCloseUserSearch}
                         userLookup={this.userLookup}
@@ -351,7 +353,7 @@ class Login extends React.Component {
             let loginObj = {
                 actionType: "USER_LOGIN_ACCOUNT",
                 username: this.state.username,
-                password: this.state.password
+                password: encrypt(this.state.password)
             };
 
             let json = JSON.stringify(loginObj);
@@ -592,7 +594,7 @@ class Register extends React.Component {
                 actionType: "USER_REGISTER_ACCOUNT",
                 name: this.state.name,
                 username: this.state.username,
-                password: this.state.password
+                password: encrypt(this.state.password)
             };
             let json = JSON.stringify(registerObj);
             this.state.socket.send(json);
@@ -687,8 +689,8 @@ export class Auth extends React.Component {
     render() {
         const theme = createMuiTheme({
             palette: {
-                primary: teal,
-                secondary: blueGrey,
+                primary: blueGrey,
+                secondary: grey,
                 error: red,
                 type: this.state.dnmode
             }
@@ -809,8 +811,8 @@ export class InitApp extends React.Component {
 
         const theme = createMuiTheme({
             palette: {
-                primary: teal,
-                secondary: blueGrey,
+                primary: blueGrey,
+                secondary: grey,
                 error: red,
                 type: this.state.dnmode
             }
