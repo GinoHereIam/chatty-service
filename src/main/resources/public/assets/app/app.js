@@ -27,10 +27,23 @@ import RegisterElements from "./components/Register";
 import LoginElements from "./components/Login";
 import Chat from "./components/Chat";
 import {getDnMode} from "./util/dnmode";
-import ChattyAppBar from './components/elements/AppBar';
-import Usersearch from './components/Usersearch';
 import {Version} from './util/version';
 import {encrypt} from "./util/encrypt";
+import ChattyAppBar from './components/elements/AppBar';
+import Usersearch from './components/Usersearch';
+
+// INFO prevent back button in browser
+history.pushState(null, null, document.URL);
+window.addEventListener('popstate', function () {
+    history.pushState(null, null, document.URL);
+});
+
+// INFO warn user before reloading
+/*
+window.onbeforeunload = function() {
+    return "No good idea.";
+};
+*/
 
 // Functions
 function parseCPOW(event) {
@@ -41,10 +54,9 @@ function parseCPOW(event) {
     const version = {
         author: CPOW[0].version[0].author,
         service: CPOW[0].version[1].service,
-        client: CPOW[0].version[2].client,
-        homepage: CPOW[0].version[3].homepage,
-        license: CPOW[0].version[4].license,
-        thirdParties: CPOW[0].version[5].thirdParties
+        homepage: CPOW[0].version[2].homepage,
+        license: CPOW[0].version[3].license,
+        thirdParties: CPOW[0].version[4].thirdParties
     };
     const actionType = CPOW[1].actionType;
     const message = {
@@ -64,7 +76,7 @@ function parseCPOW(event) {
         minimumLength: CPOW[5].user[3].minimumLength
     };
 
-    // CPOW[6] doesn't matter for now
+    const contacts = CPOW[6].contacts[0].contacts;
 
     const chats = {
         chatIDs: CPOW[7].chats[0].chatIDs
@@ -83,6 +95,7 @@ function parseCPOW(event) {
         header: header,
         responseType: responseType,
         user: user,
+        contacts: contacts,
         chats: chats,
         password: password,
         userList: userList
@@ -107,6 +120,7 @@ class Chatty extends React.Component {
             showAbout: false,
             openContacts: false,
             showUserSearch: false,
+            isConnected: true,
             /**
              * It contains {'username': base64_image_blob}, actual type has to be updated when images are available
              * @type {[]}
@@ -129,7 +143,8 @@ class Chatty extends React.Component {
             this.setState({socket: new ReconnectingWebSocket(url, null, {automaticOpen: true})})
         }
 
-        // TODO Request for friends list
+        // INFO set all contacts from user when the user logging in
+        this.setState({contacts: this.state.CPOW.contacts});
     }
 
     logout = event => {
@@ -176,7 +191,18 @@ class Chatty extends React.Component {
 
     submitUser = name => event => {
         if(!this.state.contacts.find((contact) => { return contact === name})) {
-            this.setState({contacts: this.state.contacts.concat([name])})
+            // INFO add contact to local friend list
+            this.setState({contacts: this.state.contacts.concat([name])});
+
+            const obj = {
+                actionType: "USER_ADD_FRIEND",
+                user: this.state.CPOW.user.username,
+                contact: name
+            };
+
+            // INFO send request to add friend in global list
+            const json = JSON.stringify(obj);
+            this.state.socket.send(json);
         }
     };
 
@@ -195,7 +221,7 @@ class Chatty extends React.Component {
             }
         });
 
-        // Actual this to access this.setState({})
+        // Actual this is to access this.setState({})
         let self = this;
 
         this.state.socket.onmessage = event => {
@@ -205,7 +231,7 @@ class Chatty extends React.Component {
                 CPOW: CPOW
             });
 
-            //IMPORTANT Query results here!
+            //INFO IMPORTANT Query results here!
 
             // Result of
             if(self.state.CPOW.actionType === 'USER_LOGIN_ACCOUNT') {
@@ -232,6 +258,13 @@ class Chatty extends React.Component {
                 )
             }
 
+            if(self.state.CPOW.responseType === "SUCCESS" && self.state.CPOW.actionType === "USER_ADD_FRIEND" ) {
+                self.setState({
+                    notify: true,
+                    serviceOutput: CPOW.header.additionalText
+                });
+            }
+
             // Result of user lookup
             if(self.state.CPOW.responseType === 'SUCCESS' && self.state.CPOW.actionType === 'USER_FIND_FRIEND') {
                 // TODO Open a result dialog with the corresponding user
@@ -244,22 +277,20 @@ class Chatty extends React.Component {
             if(self.state.CPOW.responseType === 'FAILURE' && self.state.CPOW.actionType === 'USER_FIND_FRIEND') {
                 self.setState({
                     notify: true,
-                    serviceOutput: 'Something bad happen while searching for user! :('
+                    serviceOutput: CPOW.header.additionalText
                 })
             }
         };
 
         this.state.socket.onclose = event =>{
             self.setState({
-                notify: true,
-                serviceOutput: 'No connection to service.'
+                isConnected: false
             });
         };
 
         this.state.socket.onopen = event =>{
             self.setState({
-                notify: true,
-                serviceOutput: 'Reconnected to service.'
+                isConnected: true
             });
         };
 
@@ -269,6 +300,7 @@ class Chatty extends React.Component {
                     <ChattyAppBar
                         openSubContacts={this.handleContactsSubList}
                         isContactsOpen={this.state.openContacts}
+                        isConnected={this.state.isConnected}
                         logout={this.logout}
                         showAbout={() => this.setState({ showAbout: true })}
                         switchStyleOnClick={(event, checked) => {checked ?
@@ -381,7 +413,7 @@ class Login extends React.Component {
                     username: self.state.username,
                     notify: self.state.notify,
                     serviceOutput: self.state.serviceOutput
-                }
+                };
                 sessionStorage.setItem("state", JSON.stringify(state));
 
                 // Render chat

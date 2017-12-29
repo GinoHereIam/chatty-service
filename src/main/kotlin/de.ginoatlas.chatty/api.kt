@@ -105,7 +105,6 @@ data class Header(
 data class Version(
         val author: String = "GinoHereIam",
         val service: String = "Alpha",
-        val client: String = "0.0.0",
         val license: String = "MIT License",
         val homepage: String = "https://gitbucket.gino-atlas.de/Chatty/chatty-service",
         val thirdParties: String = "ReactJS, Material-Ui & Google material icons"
@@ -141,7 +140,7 @@ data class CPoW(
         get
         set
 
-    lateinit var contacts: MutableList<User>
+    lateinit var contacts: MutableList<String>
         get
         set
 
@@ -167,9 +166,6 @@ suspend fun parseCPOW(protocol: CPoW): JsonArray<Any?> {
                                 ),
                                 obj(
                                         "service" to protocol.version.service
-                                ),
-                                obj(
-                                        "client" to protocol.version.client
                                 ),
                                 obj(
                                         "homepage" to protocol.version.homepage
@@ -225,12 +221,10 @@ suspend fun parseCPOW(protocol: CPoW): JsonArray<Any?> {
                         "contacts" to array(
                                 // Contacts related information
                                 if (protocol.contacts.size > 0) {
-                                    protocol.contacts.forEach {
-                                        obj("contacts" to arrayListOf(it.name))
-                                    }
+                                    obj("contacts" to array(protocol.contacts))
                                 } else {
                                     obj("contacts" to array())
-                                    obj("sessions" to array())
+                                    //obj("sessions" to array())
                                 }
                         )
                 ),
@@ -262,6 +256,6 @@ suspend fun parseCPOW(protocol: CPoW): JsonArray<Any?> {
         )
     }
 
-    apiLogger.trace { "CPOW: ${cpow.toJsonString(false)}" }
+    apiLogger.trace { "Parsed CPOW: ${cpow.toJsonString(false)}" }
     return cpow
 }

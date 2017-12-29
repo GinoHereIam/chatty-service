@@ -1,5 +1,8 @@
 
-import {Button, Dialog, DialogTitle, Input, ListItemText, List, ListItem, ListItemAvatar, Avatar} from "material-ui";
+import {
+    Button, Dialog, DialogTitle, Input, ListItemText, List, ListItem, ListItemAvatar, Avatar,
+    DialogContent, DialogContentText, TextField
+} from "material-ui";
 import PersonIcon  from 'material-ui-icons/Person'
 import Slide from "material-ui/transitions/Slide"
 import { teal, blueGrey, red, blue } from 'material-ui/colors'
@@ -9,8 +12,10 @@ import PropTypes from 'prop-types';
 import { withStyles } from 'material-ui/styles';
 
 const styles = theme => ({
+    dialog: {
+        borderRadius: '5%'
+    },
     searchInput: {
-        padding: 30,
         textAlign: 'center',
     },
 
@@ -26,23 +31,25 @@ function Usersearch(props) {
             onRequestClose={props.onRequestClose}
             transition={Slide}>
             <DialogTitle>User search</DialogTitle>
-            <div>
+            <DialogContent>
                 <Input placeholder={'Search for your friend!'} onChange={props.userLookup} className={classes.searchInput}/>
-                <List>
-                    {
-                        props.foundUser.map(name =>(
-                            <ListItem button onClick={props.submitUser(name)} key={name}>
-                                <ListItemAvatar>
-                                    <Avatar>
-                                        <PersonIcon/>
-                                    </Avatar>
-                                </ListItemAvatar>
-                                <ListItemText primary={name}/>
-                            </ListItem>
-                        ))
-                    }
-                </List>
-            </div>
+                <DialogContentText>
+                    <List>
+                        {
+                            props.foundUser.map(name =>(
+                                <ListItem button onClick={props.submitUser(name)} key={name}>
+                                    <ListItemAvatar>
+                                        <Avatar>
+                                            <PersonIcon/>
+                                        </Avatar>
+                                    </ListItemAvatar>
+                                    <ListItemText primary={name}/>
+                                </ListItem>
+                            ))
+                        }
+                    </List>
+                </DialogContentText>
+            </DialogContent>
         </Dialog>
     )
 }

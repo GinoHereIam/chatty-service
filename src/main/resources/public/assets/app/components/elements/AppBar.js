@@ -7,6 +7,13 @@ import PersonIcon  from 'material-ui-icons/Person'
 import StarBorder from 'material-ui-icons/StarBorder'
 import ExpandLess from 'material-ui-icons/ExpandLess'
 import ExpandMore from 'material-ui-icons/ExpandMore'
+import ChatBubble from 'material-ui-icons/ChatBubble'
+import Settings from 'material-ui-icons/Settings'
+import Search from 'material-ui-icons/Search'
+import ExitToApp from 'material-ui-icons/ExitToApp'
+import Info from 'material-ui-icons/Info'
+import Warning from 'material-ui-icons/Warning'
+import green from 'material-ui/colors/green';
 // Transitions
 import Collapse from 'material-ui/transitions/Collapse';
 import {
@@ -17,37 +24,17 @@ import {
 
 import { withStyles } from "material-ui/styles";
 
-let drawerWidth = '200';
-
 const styles = theme => ({
-    root: {
-        width: '100%',
-        height: '100%',
-        marginTop: 0,
-        zIndex: 1,
-        overflow: 'hidden',
+    list: {
+        width: '250',
     },
-    appFrame: {
-        position: 'relative',
-        display: 'flex',
-        width: '100%',
-        height: '100%',
+    listFull: {
+        width: 'auto',
     },
     appBar: {
         position: 'absolute',
-        width: `calc(100% - ${drawerWidth}px)`,
-        marginLeft: drawerWidth,
-        order: 1,
+        paddingLeft: '12%'
     },
-    drawerPaper: {
-        position: 'relative',
-        height: 'auto',
-        width: drawerWidth,
-    },
-    nested: {
-        paddingLeft: theme.spacing.unit * 4,
-    },
-    //drawerHeader: theme.mixins.toolbar,
 });
 
 function ChattyAppBar(props) {
@@ -58,7 +45,7 @@ function ChattyAppBar(props) {
             <div className={classes.appFrame}>
                 <AppBar className={classes.appBar}>
                     <Toolbar>
-                        <Typography type={'title'} align={'center'} color={'inherit'}>
+                        <Typography type={'display1'} color={'inherit'}>
                             Chatty Webclient
                         </Typography>
                     </Toolbar>
@@ -69,12 +56,24 @@ function ChattyAppBar(props) {
                         }}>
                     <List>
                         <ListItem>
-                            <Typography type={'title'} noWrap>Hi {props.username}!</Typography>
+                            <ListItemAvatar>
+                                <Avatar>
+                                    <PersonIcon/>
+                                </Avatar>
+                            </ListItemAvatar>
+                            <ListItemText inset primary={props.username}/>
                         </ListItem>
+                        <Divider/>
                         <ListItem button onClick={props.openUserSearch}>
+                            <ListItemIcon>
+                                <Search/>
+                            </ListItemIcon>
                             <ListItemText inset primary={'Search friends'}/>
                         </ListItem>
                         <ListItem button>
+                            <ListItemIcon>
+                                <Settings/>
+                            </ListItemIcon>
                             <ListItemText inset primary="Settings"/>
                         </ListItem>
                         <ListItem button onClick={props.openSubContacts}>
@@ -98,7 +97,6 @@ function ChattyAppBar(props) {
                                 ))
                             }
                         </Collapse>
-                    </List>
                         <Divider/>
                         <ListItem>
                             <ListItemIcon>
@@ -113,11 +111,25 @@ function ChattyAppBar(props) {
                             </ListItemSecondaryAction>
                         </ListItem>
                         <ListItem button onClick={props.logout}>
+                            <ListItemIcon>
+                                <ExitToApp/>
+                            </ListItemIcon>
                             <ListItemText inset primary={'Logout'}/>
                         </ListItem>
                         <ListItem button onClick={props.showAbout}>
+                            <ListItemIcon>
+                                <Info/>
+                            </ListItemIcon>
                             <ListItemText inset primary={'About Chatty'}/>
                         </ListItem>
+                        <Divider/>
+                        <ListItem>
+                            <ListItemIcon>
+                                {props.isConnected ? <ChatBubble color="accent"/>  : <Warning color="accent"/> }
+                            </ListItemIcon>
+                            <ListItemText primary={props.isConnected ? 'Chatty available'  : 'You are offline!'}/>
+                        </ListItem>
+                    </List>
                 </Drawer>
             </div>
         </div>
@@ -129,11 +141,12 @@ ChattyAppBar.propTypes = {
     // Find a friend
     // Logout function
     logout: PropTypes.func.isRequired,
+    isConnected: PropTypes.bool.isRequired,
     // Show contacts sublist
     openSubContacts: PropTypes.func.isRequired,
     isContactsOpen: PropTypes.bool.isRequired,
     // Show About
-    showAbout: PropTypes.bool.isRequired,
+    showAbout: PropTypes.func.isRequired,
     // Drawer properties
     //drawerHandleOpen: PropTypes.func.isRequired,
     //drawerOnRequestClose: PropTypes.func.isRequired,

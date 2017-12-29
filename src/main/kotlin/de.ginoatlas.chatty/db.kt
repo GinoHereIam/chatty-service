@@ -18,8 +18,8 @@ object Users : Table() {
 
 object Contacts : Table() {
     val id = integer("id").autoIncrement().primaryKey()
-    val username = varchar("username", user_maxLength)
-    val contactname = (integer("user_id") references Users.id)
+    val contact = varchar("contact", user_maxLength)
+    val userid = (integer("user_id") references Users.id)
 }
 
 object Messages : Table() {
@@ -161,3 +161,52 @@ fun dbFindUserObjectByUsername(username: String): User {
     }
 }
 */
+
+/**
+ * @param username
+ * @param contact
+ */
+fun dbAddContact(username: String, contact: String): Boolean {
+    dbLogger.debug { "$username is adding $contact to list" }
+
+    // Find ID by user
+    val userID = dbFindUserByUsername(username)
+    var alreadyAdded = ""
+
+    transaction {
+        Contacts.select{
+            Contacts.contact.eq(contact)
+        }.forEach {
+            dbLogger.debug { "$it is already in your contact list" }
+            alreadyAdded = it[Contacts.contact]
+        }
+
+        if(alreadyAdded.isEmpty()) {
+            Contacts.insert {
+                it[Contacts.contact] = contact
+                it[Contacts.userid] = userID
+            }
+        }
+    }
+
+    return alreadyAdded.isNotEmpty()
+}
+
+fun dbFindAllFriends(username: String): MutableList<String> {
+    dbLogger.debug { "Find all friends by user: $username" }
+
+    val userID = dbFindUserByUsername(username)
+    val listOfFriends = mutableListOf<String>()
+
+    transaction {
+        Contacts.select {
+            // Find all contacts matching to corresponding user
+            Contacts.userid.eq(userID)
+        }.forEach {
+            // Add all contacts to the list
+            listOfFriends.add(it[Contacts.contact])
+        }
+    }
+
+    return listOfFriends
+}

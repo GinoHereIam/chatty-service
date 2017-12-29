@@ -16,17 +16,20 @@ import io.ktor.util.*
 import io.ktor.websocket.*
 import io.ktor.server.jetty.*
 import io.ktor.server.engine.*
+import kotlinx.coroutines.experimental.async
 import org.joda.time.DateTime
 
 import java.time.*
 
 data class ChatSession(val id: String)
+
 val mainLogger = KotlinLogging.logger {}
 
 fun Application.module() {
     install(DefaultHeaders)
     install(CallLogging)
     install(Compression)
+    // FIXME This is only for development
     install(CORS) {
         anyHost()
     }
@@ -41,10 +44,9 @@ fun Application.module() {
         }
 
         intercept(ApplicationCallPipeline.Infrastructure) {
-            if(call.sessions.get<ChatSession>() == null) {
+            if (call.sessions.get<ChatSession>() == null) {
                 call.sessions.set(ChatSession(nextNonce()))
             }
-
         }
 
         val chatty_config = PropertyManager().getConfig()
@@ -63,7 +65,7 @@ fun Application.module() {
             val id = java.util.UUID.randomUUID()
             val sessionID = call.sessions.get<ChatSession>()
 
-            if ( sessionID == null ) {
+            if (sessionID == null) {
                 close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "No session"))
                 return@webSocket
             }
@@ -107,15 +109,15 @@ fun Application.module() {
                         mainLogger.trace { "[$id] client sent us: $message" }
 
                         val stringBuilder = StringBuilder(message)
-                        val CPOW = parser.parse(stringBuilder) as JsonObject
+                        val cpow = parser.parse(stringBuilder) as JsonObject
                         try {
                             // Get message
-                            val actionType: ActionType = ActionType.valueOf(CPOW["actionType"] as String)
+                            val actionType: ActionType = ActionType.valueOf(cpow["actionType"] as String)
                             val timestamp: DateTime = DateTime.now()
 
                             var content = ""
-                            if (CPOW["content"] !== null) {
-                                content = CPOW["content"] as String
+                            if (cpow["content"] != null && cpow["username"] != null) {
+                                content = cpow["content"] as String
                             }
 
                             /*
@@ -133,10 +135,10 @@ fun Application.module() {
 
                             // val token: UUID = if (CPOW["token"] == "") UUID.fromString("00000000-0000-0000-0000-000000000000") else UUID.fromString(CPOW["token"] as String)
                             // user.token = token
-                            if(CPOW["username"] !== null) {
-                                protocol.user.username = CPOW["username"] as String
+                            if (cpow["username"] != null) {
+                                protocol.user.username = cpow["username"] as String
                             }
-                            
+
                             protocol.message = Message(timestamp, content)
                             protocol.contacts = mutableListOf()
                             protocol.chats = mutableListOf()
@@ -146,8 +148,7 @@ fun Application.module() {
                             mainLogger.trace { "ActionType: $actionType, Protocol: $protocol" }
                             when (actionType) {
                                 ActionType.USER_CONNECT -> {
-                                    val asyncConnect = launch(CommonPool) {
-                                        // TODO Make user shown online
+                                    async {
                                         protocol.responseType = ResponseType.SUCCESS
                                         protocol.header.setAdditionalText = "[chatty-service]: you are connected!"
                                         val response = parseCPOW(protocol).toJsonString()
@@ -158,8 +159,16 @@ fun Application.module() {
                                 }
 
                                 ActionType.USER_DISCONNECT -> {
-                                    val asyncDisconnect = launch(CommonPool) {
-                                        mainLogger.info{ "Close connection to client!" }
+                                    async {
+                                        if(sessionID.id != "Authorized") {
+                                            protocol.responseType = ResponseType.FAILED
+                                            protocol.header.additionalText = "Not Authorized!"
+
+                                            val responseFriend = parseCPOW(protocol).toJsonString()
+                                            session.send(Frame.Text(responseFriend))
+                                        }
+
+                                        mainLogger.info { "Close connection to client!" }
 
                                         // TODO Make user shown offline
                                         protocol.responseType = ResponseType.SUCCESS
@@ -170,24 +179,143 @@ fun Application.module() {
                                     }
                                 }
 
+                                ActionType.USER_REGISTER_ACCOUNT -> {
+                                    async {
+
+                                        // Set credentials
+                                        auth.username = cpow["username"] as String
+                                        auth.name = cpow["name"] as String
+                                        auth.password = cpow["password"] as String
+                                        protocol = auth.register()
+
+                                        val response = parseCPOW(protocol).toJsonString()
+                                        session.send(Frame.Text(response))
+                                    }
+                                }
+
+                                ActionType.USER_LOGIN_ACCOUNT -> {
+                                    async {
+                                        // Set credentials
+                                        auth.username = cpow["username"] as String
+                                        auth.password = cpow["password"] as String
+                                        protocol = auth.login()
+
+                                        if(protocol.responseType.equals(ResponseType.SUCCESS)) {
+                                            call.sessions.set(ChatSession("Authorized"))
+                                        }
+
+                                        // Find all friends
+                                        protocol.contacts = dbFindAllFriends(protocol.user.username)
+
+                                        if (protocol.user.token.toString() != "") {
+                                            val response: String = parseCPOW(protocol).toJsonString()
+                                            session.send(Frame.Text(response))
+                                        }
+                                    }
+                                }
+
+                                ActionType.USER_FIND_FRIEND -> {
+                                    async {
+                                        // FIXME put me in a function
+                                        if(sessionID.id != "Authorized") {
+                                            protocol.responseType = ResponseType.FAILED
+                                            protocol.header.additionalText = "Not Authorized!"
+
+                                            val responseFriend = parseCPOW(protocol).toJsonString()
+                                            session.send(Frame.Text(responseFriend))
+                                        }
+
+                                        // TODO return name and picture of user
+
+                                        val searchedUser = cpow["header"] as String
+                                        val currentUser = protocol.user.username
+                                        val getListOfUsernames: MutableList<String> = mutableListOf()
+
+                                        if (searchedUser.isNotEmpty()) {
+                                            // Get array of possible users
+                                            getListOfUsernames.addAll(getListOfMatchedUsername(searchedUser, currentUser))
+                                        }
+
+                                        protocol.userList = getListOfUsernames
+                                        if (protocol.userList.size > 0) {
+                                            protocol.responseType = ResponseType.SUCCESS
+                                        }
+
+                                        val responseFriend = parseCPOW(protocol).toJsonString()
+                                        session.send(Frame.Text(responseFriend))
+                                    }
+                                }
+
+                                ActionType.USER_ADD_FRIEND -> {
+                                    // TODO create user add process
+                                    async {
+                                        if(sessionID.id != "Authorized") {
+                                            protocol.responseType = ResponseType.FAILED
+                                            protocol.header.additionalText = "Not Authorized!"
+
+                                            val responseFriend = parseCPOW(protocol).toJsonString()
+                                            session.send(Frame.Text(responseFriend))
+                                        }
+
+                                        val contact = cpow["contact"] as String
+                                        val alreadyAdded = dbAddContact(protocol.user.username, contact)
+
+                                        if (alreadyAdded) {
+                                            val message = "[chatty-service]: is $contact already in your friends list"
+                                            protocol.header.additionalText = message
+                                        } else {
+                                            val message = "[chatty-service]: $contact is added to your friends list"
+                                            protocol.header.additionalText = message
+                                        }
+
+                                        val response = parseCPOW(protocol).toJsonString()
+                                        session.send(Frame.Text(response))
+                                    }
+                                }
+
+                                ActionType.USER_DELETE_FRIEND -> {
+                                    async {
+                                        if(sessionID.id != "Authorized") {
+                                            protocol.responseType = ResponseType.FAILED
+                                            protocol.header.additionalText = "Not Authorized!"
+
+                                            val responseFriend = parseCPOW(protocol).toJsonString()
+                                            session.send(Frame.Text(responseFriend))
+                                        }
+
+                                        protocol.header.additionalText = "This does not exist yet."
+                                        val response = parseCPOW(protocol).toJsonString()
+                                        session.send(Frame.Text(response))
+                                    }
+                                }
+
                                 ActionType.USER_CREATE_CHAT -> {
-                                    val asyncChatCreation = launch(CommonPool) {
-                                        val participant = CPOW["participant"] as String
+                                    async {
+                                        if(sessionID.id != "Authorized") {
+                                            protocol.responseType = ResponseType.FAILED
+                                            protocol.header.additionalText = "Not Authorized!"
+
+                                            val responseFriend = parseCPOW(protocol).toJsonString()
+                                            session.send(Frame.Text(responseFriend))
+                                        }
+
+                                        val participant = cpow["participant"] as String
 
                                         // Create a chat
                                         val chat: Chat = Chat()
+                                        // Add the user itself to the chat
                                         chat.addParticipant(user)
 
                                         // Find partner in global list
                                         val partner = mutableListOf<User>()
                                         users.filter {
-                                            it.name == participant
+                                            it.username == participant
                                         }.forEach {
                                             partner.add(it)
                                         }
 
                                         if (partner.size > 0) {
-                                            // Addd participant
+                                            // Add participant
                                             partner.forEach { chat.addParticipant(it) }
                                             // Set information in protocol
                                             protocol.responseType = ResponseType.SUCCESS
@@ -203,73 +331,13 @@ fun Application.module() {
                                     }
                                 }
 
-                                ActionType.USER_REGISTER_ACCOUNT -> {
-                                    val asyncAuth = launch(CommonPool) {
-
-                                        // Set credentials
-                                        auth.username = CPOW["username"] as String
-                                        auth.name = CPOW["name"] as String
-                                        auth.password = CPOW["password"] as String
-                                        protocol = auth.register()
-
+                                else -> {
+                                    async {
+                                        protocol.header.additionalText = "Unknown message type!"
+                                        protocol.responseType = ResponseType.FAILED
                                         val response = parseCPOW(protocol).toJsonString()
                                         session.send(Frame.Text(response))
                                     }
-                                }
-
-                                ActionType.USER_LOGIN_ACCOUNT -> {
-                                    val asyncAuth = launch(CommonPool) {
-
-                                        // Set credentials
-                                        auth.username = CPOW["username"] as String
-                                        auth.password = CPOW["password"] as String
-                                        protocol = auth.login()
-
-                                        if (protocol.user.token.toString() != "") {
-                                            val response = parseCPOW(protocol).toJsonString()
-                                            session.send(Frame.Text(response))
-                                        }
-                                    }
-                                }
-
-                                ActionType.USER_FIND_FRIEND -> {
-                                    val asyncSearchFriend = launch(CommonPool) {
-                                        // TODO return name and picture of user
-
-                                        val searchedUser = CPOW["header"] as String
-                                        val currentUser = protocol.user.username
-                                        val getListOfUsernames: MutableList<String> = mutableListOf()
-
-                                        if(searchedUser.isNotEmpty()) {
-                                            // Get array of possible uers
-                                            getListOfUsernames.addAll(getListOfMatchedUsername(searchedUser, currentUser))
-                                        }
-
-                                        protocol.userList = getListOfUsernames
-                                        if(protocol.userList.size > 0) {
-                                            protocol.responseType = ResponseType.SUCCESS
-                                        }
-
-                                        val responseFriend = parseCPOW(protocol).toJsonString()
-                                        session.send(Frame.Text(responseFriend))
-                                    }
-                                }
-
-                                ActionType.USER_ADD_FRIEND -> {
-                                    // TODO create user add process
-                                    val asyncAdd = launch(CommonPool) {
-                                        session.send(Frame.Text("This does not exist yet."))
-                                    }
-                                }
-
-                                ActionType.USER_DELETE_FRIEND -> {
-                                    val asyncDelete = launch(CommonPool) {
-                                        session.send(Frame.Text("This does not exist yet."))
-                                    }
-                                }
-
-                                else -> {
-                                    session.send(Frame.Text("Unknown message type!"))
                                 }
                             }
                         } catch (e: TypeCastException) {
@@ -281,10 +349,10 @@ fun Application.module() {
                         }
                     }
                 })
-            }  finally {
+            } finally {
                 if (protocol.user.username.isEmpty()) {
                     mainLogger.info { "[chatty-service]: $id disconnected" }
-                }else {
+                } else {
                     mainLogger.info { "[chatty-service]: ${protocol.user.username} disconnected" }
                 }
                 call.sessions.clear<ChatSession>()
