@@ -3,9 +3,12 @@ package de.ginoatlas.chatty
 // For JSON
 import com.beust.klaxon.JsonArray
 import com.beust.klaxon.json
+import com.google.gson.GsonBuilder
 import mu.KotlinLogging
 import org.joda.time.DateTime
+import java.awt.image.BufferedImage
 import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * Created by GinoHereIam on 30.06.17.
@@ -29,33 +32,40 @@ val password_hash_length = 512
 
 private val apiLogger = KotlinLogging.logger {}
 
+open class Chat(
+        var chatID: UUID = UUID.randomUUID(),
+        var members: ArrayList<User> = arrayListOf(),
+        var messages: Map<User, Message> = mapOf()
+)
+
 // TODO add isConnected state
 class User {
-    // Set user minimum length
+    // INFO Set user minimum length
     val minimumLength: Int = user_minimumLength
 
-    // Unique user name | it's for login
+    // INFO Unique user name
     var username: String = ""
         get
         set
 
-    // Display name
+    // INFO Display name
     var name: String = ""
         get
         set
 
-    // Credential token
-    var token: UUID = UUID.fromString("00000000-0000-0000-0000-000000000000")
+    // INFO Credential token
+    lateinit var token: UUID
         get
         set
 
-    // Probably wrong type?
-    var photo: Byte? = null
+    // INFO the picture data is being hold in a byte array
+    var photo: ByteArray? = null
         get
         set
 }
 
 data class Password(
+        var encrypted: String = "42",
         val minimumLength: Int = 8
 )
 
@@ -81,6 +91,11 @@ enum class ActionType {
     USER_LOGIN_ACCOUNT,
     USER_DELETE_ACCOUNT,
 
+    // Actions to settings
+    USER_UPDATE_PICTURE,
+    USER_UPDATE_NAME,
+    USER_UPDATE_PASSWORD,
+
     // Actions to connection
     USER_CONNECT,
     USER_DISCONNECT,
@@ -89,173 +104,54 @@ enum class ActionType {
     NONE
 }
 
-data class Message(
-        val timestamp: DateTime,
-        val content: String
-)
+class Message {
+    // INFO Each message has a counter to identify the message
+    var id: Int = 0
 
-data class Header(
-        var additionalText: String = "") {
-    var setAdditionalText: String = ""
-        set(value) {
-            additionalText = value
-        }
+    // INFO Each message has a timestamp
+    lateinit var timestamp: String
+
+    // INFO the actual message content
+    lateinit var content: String
+}
+
+class Header {
+    // INFO To send extra information to the client or server
+    lateinit var additionalText: String
 }
 
 data class Version(
-        val author: String = "GinoHereIam",
+        // INFO version information
+        val author: String = "ThraaxSession",
         val service: String = "Alpha",
         val license: String = "MIT License",
         val homepage: String = "https://gitbucket.gino-atlas.de/Chatty/chatty-service",
         val thirdParties: String = "ReactJS, Material-Ui & Google material icons"
 )
 
-data class CPoW(
-        val action: ActionType,
-        val response: ResponseType,
-        val participant: User,
-        val password: Password,
-        val header: Header,
-        // TODO For verification compatibility
-        val version: Version) {
+// INFO wrap up all data container
+class CPoW {
 
-    // Getter / Setter
-    var actionType: ActionType = action
-        get
-        set
-
-    var responseType: ResponseType = response
-        get
-        set
-
-    var user: User = participant
-        get
-        set
-
-    var messageHeader: Header = header
-        get
-        set
-
+    lateinit var actionType: ActionType
+    lateinit var responseType: ResponseType
+    lateinit var user: User
+    lateinit var participent: User
+    lateinit var password: Password
     lateinit var message: Message
-        get
-        set
+    lateinit var contacts: ArrayList<String>
+    lateinit var userList: ArrayList<String>
+    lateinit var chats: ArrayList<Chat>
 
-    lateinit var contacts: MutableList<String>
-        get
-        set
+    lateinit var header: Header
 
-    lateinit var chats: MutableList<Chat>
-        get
-        set
-
-    lateinit var userList: MutableList<String>
-        get
-        set
-
+    // TODO For verification compatibility
+    lateinit var version: Version
 }
 
-suspend fun parseCPOW(protocol: CPoW): JsonArray<Any?> {
+suspend fun parseCPOW(protocol: CPoW): String {
+    val gson = GsonBuilder().create()
+    val json = gson.toJson(protocol)
 
-    // FIXME use GSON
-    val cpow = json {
-        array(
-                obj(
-                        "version" to array(
-                                obj(
-                                        "author" to protocol.version.author
-                                ),
-                                obj(
-                                        "service" to protocol.version.service
-                                ),
-                                obj(
-                                        "homepage" to protocol.version.homepage
-                                ),
-                                obj(
-                                        "license" to protocol.version.license
-                                ),
-                                obj(
-                                        "thirdParties" to protocol.version.thirdParties
-                                )
-                        )
-                ),
-                obj(
-                        "actionType" to protocol.actionType.name
-                ),
-                obj(
-                        "message" to array(
-                                obj(
-                                        "content" to protocol.message.content
-                                ),
-                                obj(
-                                        "timestamp" to protocol.message.timestamp.toLocalDateTime().toString()
-                                )
-                        )
-                ),
-                obj(
-                        "header" to array(
-                                obj(
-                                        "additionalText" to protocol.header.additionalText
-                                )
-                        )
-                ),
-                obj(
-                        "responseType" to protocol.responseType.name
-                ),
-                obj(
-                        "user" to array(
-                                obj(
-                                        "username" to protocol.user.username
-                                ),
-                                obj(
-                                        "name" to protocol.user.name
-                                ),
-                                obj(
-                                        "token" to protocol.user.token.toString()
-                                ),
-                                obj(
-                                        "minimumLength" to protocol.user.minimumLength
-                                )
-                        )
-                ),
-                obj(
-                        "contacts" to array(
-                                // Contacts related information
-                                if (protocol.contacts.size > 0) {
-                                    obj("contacts" to array(protocol.contacts))
-                                } else {
-                                    obj("contacts" to array())
-                                    //obj("sessions" to array())
-                                }
-                        )
-                ),
-                obj(
-                        "chats" to array(
-                                // Get each unique chat id
-                                if (protocol.chats.size > 0) {
-                                    protocol.chats.forEach {
-                                        // Chat related information
-                                        obj("chats" to protocol.chats.size)
-                                        obj("chatIDs" to arrayListOf(it.chatID.toString()))
-                                    }
-                                } else {
-                                    obj("chats" to 0)
-                                    obj("chatIDs" to array())
-                                }
-                        )
-                ),
-                obj(
-                        "password" to array(
-                            obj("minimumLength" to protocol.password.minimumLength)
-                        )
-                ),
-                obj(
-                        "userList" to array(
-                                protocol.userList
-                        )
-                )
-        )
-    }
-
-    apiLogger.trace { "Parsed CPOW: ${cpow.toJsonString(false)}" }
-    return cpow
+    apiLogger.debug { "GSON JSON: $json" }
+    return json
 }

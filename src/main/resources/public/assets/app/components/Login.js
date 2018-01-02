@@ -33,7 +33,7 @@ export function LoginElements(props) {
                     <TextField className="password"
                                onChange={props.onChangePassword('password')} label='Password' type="password"/>
                 } required/>
-                <Button color='primary' type='submit'>Login</Button>
+                <Button color='primary' type='submit' raised>Login</Button>
             </form>
         </Paper>
     )

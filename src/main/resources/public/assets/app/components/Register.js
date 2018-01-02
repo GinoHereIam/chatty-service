@@ -45,7 +45,7 @@ function RegisterElements(props) {
                 <Button color="primary"
                         disabled={props.buttonRegisterDisabled}
                         type="submit"
-                        className="submitBtn">Register
+                        className="submitBtn" raised>Register
                 </Button>
             </form>
         </Paper>

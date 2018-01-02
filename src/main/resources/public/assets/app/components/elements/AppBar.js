@@ -13,18 +13,21 @@ import Search from 'material-ui-icons/Search'
 import ExitToApp from 'material-ui-icons/ExitToApp'
 import Info from 'material-ui-icons/Info'
 import Warning from 'material-ui-icons/Warning'
-import green from 'material-ui/colors/green';
-// Transitions
+import Send from 'material-ui-icons/Send';
+
 import Collapse from 'material-ui/transitions/Collapse';
 import {
     AppBar, Toolbar,
     Typography, List, ListItemText, ListItemIcon, ListItem, Drawer, Switch,
-    Divider, ListItemSecondaryAction, ToolBarGroup, ListItemAvatar, Avatar
+    Divider, ListItemSecondaryAction, ListItemAvatar, Avatar, Paper, Input, TextField, Button
 } from "material-ui";
 
 import { withStyles } from "material-ui/styles";
 
 const styles = theme => ({
+    rightIcon: {
+        marginLeft: theme.spacing.unit,
+    },
     list: {
         width: '250',
     },
@@ -34,6 +37,48 @@ const styles = theme => ({
     appBar: {
         position: 'absolute',
         paddingLeft: '12%'
+    },
+    header: {
+        padding: theme.spacing.unit * 2,
+        marginBottom: theme.spacing.unit * 2
+    },
+    content: {
+        position: 'absolute',
+        width: '30%',
+        maxHeight: '60%',
+        padding: theme.spacing.unit * 5,
+        marginLeft: '20%',
+        marginTop: 56,
+        [theme.breakpoints.up('sm')]: {
+            height: 'calc(100% - 64px)',
+            marginTop: 64,
+        }
+    },
+    messages: {
+        height: '100%',
+        padding: theme.spacing.unit * 2,
+        marginBottom: theme.spacing.unit * 3
+    },
+    textFieldRoot: {
+        background: theme.palette.background.paper,
+        marginBottom: theme.spacing.unit * 3,
+        bottom: 0,
+        padding: 0,
+        'label + &': {
+            marginTop: theme.spacing.unit * 3,
+        },
+    },
+    textFieldInput: {
+        borderRadius: 4,
+        border: '1px solid #ced4da',
+        padding: '10px 12px',
+        transition: theme.transitions.create(['border-color', 'box-shadow']),
+        '&:focus': {
+            boxShadow: '0 0 0 0.2rem ' + theme.palette.primary[500]
+        },
+    },
+    textFieldFormLabel: {
+        fontSize: 18,
     },
 });
 
@@ -85,14 +130,14 @@ function ChattyAppBar(props) {
                         </ListItem>
                         <Collapse in={ props.isContactsOpen } transitionDuration="auto" unmountOnExit>
                             {
-                                props.contacts.map(name =>(
-                                    <ListItem button key={name}>
+                                props.contacts.map(username => (
+                                    <ListItem button onClick={props.openChat(username)}>
                                         <ListItemAvatar>
                                             <Avatar>
                                                 <PersonIcon/>
                                             </Avatar>
                                         </ListItemAvatar>
-                                        <ListItemText primary={name}/>
+                                        <ListItemText primary={username}/>
                                     </ListItem>
                                 ))
                             }
@@ -125,12 +170,42 @@ function ChattyAppBar(props) {
                         <Divider/>
                         <ListItem>
                             <ListItemIcon>
-                                {props.isConnected ? <ChatBubble color="accent"/>  : <Warning color="accent"/> }
+                                {props.isConnected ? <ChatBubble color="green"/>  : <Warning color="red"/> }
                             </ListItemIcon>
                             <ListItemText primary={props.isConnected ? 'Chatty available'  : 'You are offline!'}/>
                         </ListItem>
                     </List>
                 </Drawer>
+                {props.clickedChat ? <main className={classes.content}>
+                    {
+                        props.context.map(context => (
+                            <Paper elevation={4} square={false} className={classes.header}>
+                                <Typography type={'title'}>Chat with {context.participant}</Typography>
+                            </Paper>
+                        ))
+                    }
+                    <Paper elevation={4} square={false} className={classes.messages}>
+                        <Typography type={'subheading'}>[This is a message container]</Typography>
+                    </Paper>
+                    <TextField
+                        multiline={true} fullWidth={true} rows={3}
+                        InputProps={{
+                            disableUnderline: true,
+                            classes: {
+                                root: classes.textFieldRoot,
+                                input: classes.textFieldInput,
+                            },
+                        }}
+                        InputLabelProps={{
+                            //shrink: true,
+                            className: classes.textFieldFormLabel,
+                        }}
+                    />
+                    <Button raised color={'primary'}>
+                        Send
+                        <Send className={classes.rightIcon}/>
+                    </Button>
+                </main> : <main/>}
             </div>
         </div>
     );
@@ -151,6 +226,11 @@ ChattyAppBar.propTypes = {
     //drawerHandleOpen: PropTypes.func.isRequired,
     //drawerOnRequestClose: PropTypes.func.isRequired,
     //drawerOpen: PropTypes.bool.isRequired,
+    // Open chat
+    openChat: PropTypes.func.isRequired,
+    clickedChat: PropTypes.bool.isRequired,
+    // Chat context
+    context: PropTypes.array.isRequired,
     // Open user search dialog
     openUserSearch: PropTypes.func.isRequired,
     // Switch theme properties

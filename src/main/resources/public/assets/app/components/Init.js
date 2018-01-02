@@ -29,13 +29,13 @@ function Service(props) {
                 </span>
                 <span style={elementStyle}>
                     <Button disabled={props.buttonTestDisabled}
-                            onClick={props.testConnection}>
+                            onClick={props.testConnection} raised>
                         Verify
                     </Button>
                 </span>
                 <span style={elementStyle}>
                     <Button color='primary' disabled={props.buttonEnterDisabled}
-                            onClick={props.addServiceAddress}>
+                            onClick={props.addServiceAddress} raised>
                         Enter
                     </Button>
                 </span>

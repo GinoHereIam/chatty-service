@@ -9,27 +9,29 @@ import org.jetbrains.exposed.sql.SchemaUtils.create
     TODO draw UML model
  */
 val dbLogger = KotlinLogging.logger {}
-object Users : Table() {
+object UsersTable : Table() {
     val id = integer("id").autoIncrement().primaryKey()
     val username = varchar("username", user_maxLength)
     val name = varchar("name", user_maxLength)
     val password = varchar("password", password_hash_length)
 }
 
-object Contacts : Table() {
+object ContactsTable : Table() {
     val id = integer("id").autoIncrement().primaryKey()
     val contact = varchar("contact", user_maxLength)
-    val userid = (integer("user_id") references Users.id)
+    val userid = (integer("user_id") references UsersTable.id)
 }
 
-object Messages : Table() {
+object MessagesTable : Table() {
     val id = integer("id").autoIncrement().primaryKey()
     val text = varchar("text", message_content_maxLength)
+    val sender = (integer("sender") references UsersTable.id)
+    val recipient = (integer("recipient") references UsersTable.id)
 }
 
-object Chats : Table() {
+object ChatsTable : Table() {
     val chatID = (integer("chat_id").autoIncrement().primaryKey())
-    val msgID = (integer("msg_id") references Messages.id)
+    val msgID = (integer("msg_id") references MessagesTable.id)
 }
 
 fun initDB() {
@@ -44,7 +46,7 @@ fun initDB() {
 fun setupDB() {
     dbLogger.info { "Set up tables." }
     transaction {
-        create(Users, Contacts, Messages, Chats)
+        create(UsersTable, ContactsTable, MessagesTable, ChatsTable)
     }
 }
 
@@ -60,11 +62,11 @@ fun dbRegister(username: String, name: String, password: String): Int {
 
     var userID: Int = -1
     transaction {
-        userID = Users.insert {
-            it[Users.username] = username
-            it[Users.name] = name
-            it[Users.password] = password
-        } get Users.id
+        userID = UsersTable.insert {
+            it[UsersTable.username] = username
+            it[UsersTable.name] = name
+            it[UsersTable.password] = password
+        } get UsersTable.id
     }
 
     return userID
@@ -80,11 +82,11 @@ fun dbLogin(username: String, password: String): Int {
 
     var userID: Int = -1
     transaction {
-        Users.select {
-            Users.username.eq(username)
+        UsersTable.select {
+            UsersTable.username.eq(username)
         }.forEach {
-            if(it[Users.password] == password) {
-                userID = it[Users.id]
+            if(it[UsersTable.password] == password) {
+                userID = it[UsersTable.id]
             }
         }
     }
@@ -100,10 +102,10 @@ fun dbFindUserByUsername(username: String): Int {
 
     var userID: Int = -1
     transaction {
-        Users.select {
-            Users.username.eq(username)
+        UsersTable.select {
+            UsersTable.username.eq(username)
         }.forEach {
-            userID = it[Users.id]
+            userID = it[UsersTable.id]
         }
     }
     return userID
@@ -117,10 +119,10 @@ fun getListOfMatchedUsername(username: String, currentUser: String): MutableList
     dbLogger.debug { "Matching username: $username, currentUser: $currentUser" }
     val listOfUsers: MutableList<String> = mutableListOf()
     transaction {
-        Users.selectAll().forEach {
+        UsersTable.selectAll().forEach {
             // Get the looked up username but not the own one
-            if(it[Users.username].contains(username) && ! it[Users.username].contains(currentUser)) {
-                listOfUsers.add(it[Users.username])
+            if(it[UsersTable.username].contains(username) && ! it[UsersTable.username].contains(currentUser)) {
+                listOfUsers.add(it[UsersTable.username])
             }
         }
     }
@@ -136,10 +138,10 @@ fun dbFindNameByUsername(username: String): String {
 
     var name = ""
     transaction {
-        Users.select {
-            Users.username.eq(username)
+        UsersTable.select {
+            UsersTable.username.eq(username)
         }.forEach {
-            name = it[Users.name]
+            name = it[UsersTable.name]
         }
     }
     return name
@@ -150,17 +152,20 @@ fun dbFindNameByUsername(username: String): String {
  * @return the user object
  */
 
-/*
 fun dbFindUserObjectByUsername(username: String): User {
+    val user = User()
+
     transaction {
-        Users.select {
-            Users.username.eq(username)
+        UsersTable.select {
+            UsersTable.username.eq(username)
         }.forEach {
-            return it as User
+            user.username = it[UsersTable.username]
+            user.name = it[UsersTable.name]
         }
     }
+
+    return user
 }
-*/
 
 /**
  * @param username
@@ -174,17 +179,17 @@ fun dbAddContact(username: String, contact: String): Boolean {
     var alreadyAdded = ""
 
     transaction {
-        Contacts.select{
-            Contacts.contact.eq(contact)
+        ContactsTable.select{
+            ContactsTable.contact.eq(contact)
         }.forEach {
             dbLogger.debug { "$it is already in your contact list" }
-            alreadyAdded = it[Contacts.contact]
+            alreadyAdded = it[ContactsTable.contact]
         }
 
         if(alreadyAdded.isEmpty()) {
-            Contacts.insert {
-                it[Contacts.contact] = contact
-                it[Contacts.userid] = userID
+            ContactsTable.insert {
+                it[ContactsTable.contact] = contact
+                it[ContactsTable.userid] = userID
             }
         }
     }
@@ -192,19 +197,19 @@ fun dbAddContact(username: String, contact: String): Boolean {
     return alreadyAdded.isNotEmpty()
 }
 
-fun dbFindAllFriends(username: String): MutableList<String> {
+fun dbFindAllFriends(username: String): ArrayList<String> {
     dbLogger.debug { "Find all friends by user: $username" }
 
     val userID = dbFindUserByUsername(username)
-    val listOfFriends = mutableListOf<String>()
+    val listOfFriends = arrayListOf<String>()
 
     transaction {
-        Contacts.select {
+        ContactsTable.select {
             // Find all contacts matching to corresponding user
-            Contacts.userid.eq(userID)
+            ContactsTable.userid.eq(userID)
         }.forEach {
             // Add all contacts to the list
-            listOfFriends.add(it[Contacts.contact])
+            listOfFriends.add(it[ContactsTable.contact])
         }
     }
 

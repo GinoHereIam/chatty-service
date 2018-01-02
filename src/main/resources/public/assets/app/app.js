@@ -2,7 +2,7 @@
 import "./style.css";
 import 'typeface-roboto'
 // Material-ui
-import { blueGrey, red, grey } from 'material-ui/colors'
+import { blueGrey, red, teal } from 'material-ui/colors'
 
 import {
     FormControlLabel, AppBar, Drawer, Input,
@@ -45,64 +45,17 @@ window.onbeforeunload = function() {
 };
 */
 
-// Functions
 function parseCPOW(event) {
-    // Expect server event data
-    let CPOW = JSON.parse(event);
+    const cpow = JSON.parse(event);
 
-    // DEBUG
-    const version = {
-        author: CPOW[0].version[0].author,
-        service: CPOW[0].version[1].service,
-        homepage: CPOW[0].version[2].homepage,
-        license: CPOW[0].version[3].license,
-        thirdParties: CPOW[0].version[4].thirdParties
-    };
-    const actionType = CPOW[1].actionType;
-    const message = {
-        timestamp: CPOW[2].message[1],
-        content: CPOW[2].message[0]
-    };
-
-    const header = {
-        additionalText: CPOW[3].header[0].additionalText
-    };
-
-    const responseType = CPOW[4].responseType;
-    const user = {
-        username: CPOW[5].user[0].username,
-        name: CPOW[5].user[1].name,
-        token: CPOW[5].user[2].token,
-        minimumLength: CPOW[5].user[3].minimumLength
-    };
-
-    const contacts = CPOW[6].contacts[0].contacts;
-
-    const chats = {
-        chatIDs: CPOW[7].chats[0].chatIDs
-    };
-
-    const password = {
-        minimumLength: CPOW[8].password[0].minimumLength
-    };
-
-    const userList = CPOW[9].userList;
-
-    return {
-        version: version,
-        actionType: actionType,
-        message: message,
-        header: header,
-        responseType: responseType,
-        user: user,
-        contacts: contacts,
-        chats: chats,
-        password: password,
-        userList: userList
-    };
+    // INFO DEBUG IT
+    console.log(cpow);
+    return cpow;
 }
 
 let websocket = null;
+let primaryColor = teal;
+let secondaryColor = blueGrey;
 
 class Chatty extends React.Component {
     constructor(props) {
@@ -120,16 +73,32 @@ class Chatty extends React.Component {
             showAbout: false,
             openContacts: false,
             showUserSearch: false,
+            clickedChat: false,
             isConnected: true,
             /**
-             * It contains {'username': base64_image_blob}, actual type has to be updated when images are available
+             * INFO It contains {'username': base64_image_blob}, actual type has to be updated when images are available
              * @type {[]}
              */
             foundUser: [],
             /**
-             * Contacts list
+             * INFO Contacts list
+             * @type {[]}
              */
-            contacts: []
+            contacts: [],
+            /**
+             * INFO Properties for the chat context
+             */
+            context: [
+                // INFO current chat participant
+                { participant: '' },
+                // INFO current messages in chat
+                { messages: [
+                    {
+                        // INFO message sender
+                        sender: '',
+                        content: ''
+                    }]
+                }]
         };
 
         this.openChat = this.openChat.bind(this);
@@ -143,26 +112,44 @@ class Chatty extends React.Component {
             this.setState({socket: new ReconnectingWebSocket(url, null, {automaticOpen: true})})
         }
 
+        const cpowTemp = this.state.CPOW;
+        cpowTemp.user.username = this.state.username;
+
         // INFO set all contacts from user when the user logging in
-        this.setState({contacts: this.state.CPOW.contacts});
+        this.setState({
+            contacts: this.state.CPOW.contacts,
+            CPOW: cpowTemp
+        });
     }
 
     logout = event => {
-        let CPOW = {
-            actionType: 'USER_DISCONNECT'
+
+        const cpow = this.state.CPOW;
+        cpow.actionType = 'USER_DISCONNECT';
+
+        let json = JSON.stringify(cpow);
+        this.state.socket.send(json);
+    };
+
+    openChat = participant => event => {
+        this.setState({
+            clickedChat: true,
+            context: [{
+                participant: participant
+            }]
+        });
+
+        const cpow = this.state.CPOW;
+        cpow.actionType = 'USER_CREATE_CHAT';
+        cpow.participant = {
+            username: participant
         };
 
-        let cpow = JSON.stringify(CPOW);
-        this.state.socket.send(cpow);
+        let json = JSON.stringify(cpow);
+        this.state.socket.send(json)
     };
 
-    openChat = event => {
-        // Get messages
-        let messages = document.getElementsByClassName('messages');
-        messages.innerHTML = 'Your last dummy messages from John Doe!'
-    };
-
-    sendMessage = event => {
+    sendMessage = msg => event => {
         // TODO
     };
 
@@ -178,30 +165,26 @@ class Chatty extends React.Component {
         let value = event.target.value;
         //let length = value.length;
 
-        let findAFriendObj = {
-            username: this.state.username,
-            actionType: "USER_FIND_FRIEND",
-            header: value
-        };
+        const cpow = this.state.CPOW;
+        cpow.actionType = 'USER_FIND_FRIEND';
+        cpow.header.additionalText = value;
+        cpow.username = this.state.username;
 
-        let json = JSON.stringify(findAFriendObj);
-
+        let json = JSON.stringify(cpow);
         this.state.socket.send(json);
     };
 
-    submitUser = name => event => {
-        if(!this.state.contacts.find((contact) => { return contact === name})) {
+    submitUser = username => event => {
+        if(!this.state.contacts.find((contact) => { return contact === username})) {
             // INFO add contact to local friend list
-            this.setState({contacts: this.state.contacts.concat([name])});
+            this.setState({contacts: this.state.contacts.concat([username])});
 
-            const obj = {
-                actionType: "USER_ADD_FRIEND",
-                user: this.state.CPOW.user.username,
-                contact: name
-            };
+            const cpow = this.state.CPOW;
+            cpow.actionType = 'USER_ADD_FRIEND';
+            cpow.header.additionalText = username;
 
             // INFO send request to add friend in global list
-            const json = JSON.stringify(obj);
+            const json = JSON.stringify(cpow);
             this.state.socket.send(json);
         }
     };
@@ -214,8 +197,8 @@ class Chatty extends React.Component {
         // Set theme
         const theme = createMuiTheme({
             palette: {
-                primary: blueGrey,
-                secondary: grey,
+                primary: primaryColor,
+                secondary: secondaryColor,
                 error: red,
                 type: this.state.dnmode,
             }
@@ -225,7 +208,7 @@ class Chatty extends React.Component {
         let self = this;
 
         this.state.socket.onmessage = event => {
-            let CPOW = parseCPOW(event.data);
+            const CPOW = parseCPOW(event.data);
 
             self.setState({
                 CPOW: CPOW
@@ -241,7 +224,7 @@ class Chatty extends React.Component {
                 });
             }
 
-            if(self.state.CPOW.responseType === 'SUCCESS' && self.state.CPOW.actionType === 'USER_DISCONNECT') {
+            if(CPOW.responseType === 'SUCCESS' && CPOW.actionType === 'USER_DISCONNECT') {
                 this.state.socket.close();
                 // Remove any session cookies!
                 sessionStorage.clear();
@@ -258,7 +241,7 @@ class Chatty extends React.Component {
                 )
             }
 
-            if(self.state.CPOW.responseType === "SUCCESS" && self.state.CPOW.actionType === "USER_ADD_FRIEND" ) {
+            if(CPOW.responseType === "SUCCESS" && CPOW.actionType === "USER_ADD_FRIEND" ) {
                 self.setState({
                     notify: true,
                     serviceOutput: CPOW.header.additionalText
@@ -266,29 +249,43 @@ class Chatty extends React.Component {
             }
 
             // Result of user lookup
-            if(self.state.CPOW.responseType === 'SUCCESS' && self.state.CPOW.actionType === 'USER_FIND_FRIEND') {
+            if(CPOW.responseType === 'SUCCESS' && CPOW.actionType === 'USER_FIND_FRIEND') {
                 // TODO Open a result dialog with the corresponding user
                 self.setState({
                     showUserSearch: true,
-                    foundUser: self.state.CPOW.userList
+                    foundUser: CPOW.userList
                 })
             }
 
-            if(self.state.CPOW.responseType === 'FAILURE' && self.state.CPOW.actionType === 'USER_FIND_FRIEND') {
+            if(CPOW.responseType === 'FAILURE' && CPOW.actionType === 'USER_FIND_FRIEND') {
                 self.setState({
                     notify: true,
                     serviceOutput: CPOW.header.additionalText
                 })
             }
+
+            if(self.state.CPOW.responseType === 'SUCCESS' && self.state.CPOW.actionType === 'USER_CREATE_CHAT') {
+                self.setState({
+                    notify: true,
+                    serviceOutput: self.state.CPOW.header.additionalText
+                })
+            }
+
+            if(self.state.CPOW.responseType === 'FAILURE' && self.state.CPOW.actionType === 'USER_CREATE_CHAT') {
+                self.setState({
+                    notify: true,
+                    serviceOutput: self.state.CPOW.header.additionalText
+                })
+            }
         };
 
-        this.state.socket.onclose = event =>{
+        this.state.socket.onclose = event => {
             self.setState({
                 isConnected: false
             });
         };
 
-        this.state.socket.onopen = event =>{
+        this.state.socket.onopen = event => {
             self.setState({
                 isConnected: true
             });
@@ -308,8 +305,11 @@ class Chatty extends React.Component {
                         }}
                         switchStyleChecked={this.state.dnmode === 'dark'}
                         openUserSearch={() => this.setState({ showUserSearch: true })}
+                        openChat={this.openChat}
                         username={this.state.username}
                         contacts={this.state.contacts}
+                        clickedChat={this.state.clickedChat}
+                        context={this.state.context}
                     />
                     <Dialog
                         open={this.state.showAbout}
@@ -353,7 +353,7 @@ class Login extends React.Component {
             socket: websocket,
             username: '',
             password: '',
-            CPOW: '',
+            CPOW: null,
             serviceOutput: '',
             notify: false
 
@@ -373,14 +373,29 @@ class Login extends React.Component {
         event.preventDefault();
         if( this.state.username !== "" || this.state.password !== "") {
 
-            let loginObj = {
-                actionType: "USER_LOGIN_ACCOUNT",
-                username: this.state.username,
-                password: encrypt(this.state.password)
-            };
+            if(this.state.CPOW != null) {
+                const cpow = this.state.CPOW;
+                cpow.actionType = 'USER_LOGIN_ACCOUNT';
+                cpow.user.username = this.state.username;
+                cpow.password.encrypted = encrypt(this.state.password);
 
-            let json = JSON.stringify(loginObj);
-            this.state.socket.send(json)
+                let json = JSON.stringify(cpow);
+                this.state.socket.send(json)
+            }else {
+
+                const cpow = {
+                    actionType: 'USER_LOGIN_ACCOUNT',
+                    user: {
+                        username: this.state.username
+                    },
+                    password: {
+                        encrypted: encrypt(this.state.password)
+                    }
+                };
+
+                let json = JSON.stringify(cpow);
+                this.state.socket.send(json)
+            }
         }
     };
 
@@ -392,7 +407,7 @@ class Login extends React.Component {
 
         let self = this;
         this.state.socket.onmessage = event => {
-            let CPOW = parseCPOW(event.data);
+            const CPOW = parseCPOW(event.data);
 
             self.setState({
                 CPOW: CPOW
@@ -613,14 +628,17 @@ class Register extends React.Component {
     register (event) {
         event.preventDefault();
         if( this.state.username.length !== 0 || this.state.name.length !== 0 || this.state.password.length !== 0) {
-            let registerObj = {
-                actionType: "USER_REGISTER_ACCOUNT",
-                name: this.state.name,
-                username: this.state.username,
-                password: encrypt(this.state.password)
-            };
-            let json = JSON.stringify(registerObj);
-            this.state.socket.send(json);
+
+            if(this.state.CPOW != null) {
+                const cpow = this.state.CPOW;
+                cpow.actionType = 'USER_REGISTER_ACCOUNT';
+                cpow.user.username = this.state.username;
+                cpow.user.name = this.state.name;
+                cpow.password.encrypted = encrypt(this.state.password);
+
+                let json = JSON.stringify(cpow);
+                this.state.socket.send(json);
+            }
         }else {
             this.setState({
                 notify: true,
@@ -711,8 +729,8 @@ export class Auth extends React.Component {
     render() {
         const theme = createMuiTheme({
             palette: {
-                primary: blueGrey,
-                secondary: grey,
+                primary: primaryColor,
+                secondary: secondaryColor,
                 error: red,
                 type: this.state.dnmode
             }
@@ -832,8 +850,8 @@ export class InitApp extends React.Component {
 
         const theme = createMuiTheme({
             palette: {
-                primary: blueGrey,
-                secondary: grey,
+                primary: primaryColor,
+                secondary: secondaryColor,
                 error: red,
                 type: this.state.dnmode
             }
