@@ -210,10 +210,8 @@ fun Application.module() {
                                         // Find all friends
                                         updatedProtocol.contacts = dbFindAllFriends(updatedProtocol.user.username)
 
-                                        if (updatedProtocol.user.token.toString() != "") {
-                                            val response = parseCPOW(updatedProtocol)
-                                            session.send(Frame.Text(response))
-                                        }
+                                        val response = parseCPOW(updatedProtocol)
+                                        session.send(Frame.Text(response))
                                     }
                                 }
 
@@ -314,7 +312,7 @@ fun Application.module() {
                                             session.send(Frame.Text(responseFriend))
                                         }*/
 
-                                        val participant = protocol.participent.username
+                                        val participant = protocol.participant.username
 
                                         // INFO Find partner in the database and add it
                                         val userParticipantObject = dbFindUserObjectByUsername(participant)

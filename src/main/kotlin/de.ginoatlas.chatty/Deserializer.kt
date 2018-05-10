@@ -128,7 +128,7 @@ class Deserializer : JsonDeserializer<CPoW> {
         CPOW.actionType = action
         CPOW.responseType = response
         CPOW.user = user
-        CPOW.participent = participant
+        CPOW.participant = participant
         CPOW.password = password
         CPOW.message = message
         CPOW.chats = chats

@@ -135,7 +135,7 @@ class CPoW {
     lateinit var actionType: ActionType
     lateinit var responseType: ResponseType
     lateinit var user: User
-    lateinit var participent: User
+    lateinit var participant: User
     lateinit var password: Password
     lateinit var message: Message
     lateinit var contacts: ArrayList<String>

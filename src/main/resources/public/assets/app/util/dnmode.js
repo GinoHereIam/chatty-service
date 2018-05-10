@@ -10,7 +10,7 @@ export function getDnMode() {
     let summerTimeMorning = 6;
     // Dark time of your life
     let winterTimeEvening = 16;
-    let summerTimeEvening = 21;
+    let summerTimeEvening = 20;
 
     // For Winter time
     if(determineDst() && today.getHours() > winterTimeMorning && today.getHours() < winterTimeEvening) {

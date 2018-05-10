@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.SchemaUtils.create
+import java.nio.file.Paths
 
 /*
     TODO draw UML model
@@ -35,7 +36,9 @@ object ChatsTable : Table() {
 }
 
 fun initDB() {
-    val db = "jdbc:h2:~/.chatty/storage"
+    val homeDir = System.getProperty("user.home")
+    val pathToDb = Paths.get(homeDir, ".chatty", "storage")
+    val db = "jdbc:h2:$pathToDb"
 
     // Customize path to database
     dbLogger.info { "Initialize database." }
