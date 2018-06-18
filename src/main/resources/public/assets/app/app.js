@@ -408,6 +408,7 @@ class Login extends React.Component {
         let self = this;
         this.state.socket.onmessage = event => {
             const CPOW = parseCPOW(event.data);
+            console.log(CPOW);
 
             self.setState({
                 CPOW: CPOW

@@ -1,6 +1,5 @@
 package de.ginoatlas.chatty
 
-import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
 import com.google.gson.GsonBuilder
 import de.ginoatlas.chatty.util.PropertyManager
@@ -90,7 +89,7 @@ fun Application.module() {
             var globalUser = ""
 
             try {
-                incoming.consumeEach({ frame ->
+                incoming.consumeEach { frame ->
                     if (frame is Frame.Text) {
                         val message = frame.readText()
                         mainLogger.trace { "[$id] client sent us: $message" }
@@ -118,7 +117,9 @@ fun Application.module() {
                             // INFO set server timestamp
                             protocol.message.timestamp = timestamp.toString()
 
-                            // INFO check if the current CPoW is not null and set the user name more globally and add it to global user list
+                            // INFO
+                            // check if the current CPoW is not null and
+                            // set the user name more globally and add it to global user list
                             if(protocol?.user != null) {
                                 if(protocol.user.username.isNotEmpty()) {
                                     globalUser = protocol.user.username
@@ -129,19 +130,21 @@ fun Application.module() {
                             }
 
                             /*
-                            * FIXME probably we should move it to the action where the token is necessary like
-                            * INFO The token is important like a password.
-                            * List for needed credential token
-                            * + USER_CREATE_CHAT
-                            * + USER_SEND_MESSAGE
-                            * + USER_DELETE_MESSAGE
-                            * + USER_LOGIN_ACCOUNT
-                            * + USER_ADD_FRIEND
-                            * + USER_DELETE_FRIEND
-                            * + USER_DELETE_ACCOUNT
-                            */
+                                    * FIXME probably we should move it to the action where the token is necessary like
+                                    * INFO The token is important like a password.
+                                    * List for needed credential token
+                                    * + USER_CREATE_CHAT
+                                    * + USER_SEND_MESSAGE
+                                    * + USER_DELETE_MESSAGE
+                                    * + USER_LOGIN_ACCOUNT
+                                    * + USER_ADD_FRIEND
+                                    * + USER_DELETE_FRIEND
+                                    * + USER_DELETE_ACCOUNT
+                                    */
 
-                            // val token: UUID = if (CPOW["token"] == "") UUID.fromString("00000000-0000-0000-0000-000000000000") else UUID.fromString(CPOW["token"] as String)
+                            // val token: UUID = if (CPOW["token"] == "")
+                            // UUID.fromString("00000000-0000-0000-0000-000000000000")
+                            // else UUID.fromString(CPOW["token"] as String)
                             // user.token = token
 
                             mainLogger.trace { "ActionType: $actionType, Protocol: $protocol" }
@@ -160,13 +163,13 @@ fun Application.module() {
                                 ActionType.USER_DISCONNECT -> {
                                     async {
                                         /*
-                                        if(sessionID.id != "Authorized") {
-                                            protocol.responseType = ResponseType.FAILED
-                                            protocol.header.additionalText = "Not Authorized!"
+                                                if(sessionID.id != "Authorized") {
+                                                    protocol.responseType = ResponseType.FAILED
+                                                    protocol.header.additionalText = "Not Authorized!"
 
-                                            val responseFriend = parseCPOW(protocol).toJsonString()
-                                            session.send(Frame.Text(responseFriend))
-                                        }*/
+                                                    val responseFriend = parseCPOW(protocol).toJsonString()
+                                                    session.send(Frame.Text(responseFriend))
+                                                }*/
 
                                         mainLogger.info { "Close connection to client!" }
 
@@ -200,7 +203,10 @@ fun Application.module() {
                                         auth.username = protocol.user.username
                                         auth.password = protocol.password.encrypted
 
-                                        mainLogger.debug { "Login: user: ${protocol.user.username} password: ${protocol.password.encrypted}" }
+                                        mainLogger.debug {
+                                            "Login: user: " +
+                                                    "${protocol.user.username} password: ${protocol.password.encrypted}"
+                                        }
                                         val updatedProtocol = auth.login()
 
                                         if(protocol.responseType == ResponseType.SUCCESS) {
@@ -219,13 +225,13 @@ fun Application.module() {
                                     async {
                                         // FIXME put me in a function
                                         /*
-                                        if(call.sessions.get(ChatSession("Authorized"))) {
-                                            protocol.responseType = ResponseType.FAILED
-                                            protocol.header.additionalText = "Not Authorized!"
+                                                if(call.sessions.get(ChatSession("Authorized"))) {
+                                                    protocol.responseType = ResponseType.FAILED
+                                                    protocol.header.additionalText = "Not Authorized!"
 
-                                            val responseFriend = parseCPOW(protocol).toJsonString()
-                                            session.send(Frame.Text(responseFriend))
-                                        }*/
+                                                    val responseFriend = parseCPOW(protocol).toJsonString()
+                                                    session.send(Frame.Text(responseFriend))
+                                                }*/
 
                                         // TODO return name and picture of user
 
@@ -235,7 +241,9 @@ fun Application.module() {
 
                                         if (searchedUser.isNotEmpty()) {
                                             // INFO Get array of possible users
-                                            getListOfUsernames.addAll(getListOfMatchedUsername(searchedUser, currentUser))
+                                            getListOfUsernames.addAll(
+                                                    getListOfMatchedUsername(searchedUser, currentUser)
+                                            )
                                         }
 
                                         protocol.userList = getListOfUsernames
@@ -252,13 +260,13 @@ fun Application.module() {
                                     // TODO create user add process
                                     async {
                                         /*
-                                        if(sessionID.id != "Authorized") {
-                                            protocol.responseType = ResponseType.FAILED
-                                            protocol.header.additionalText = "Not Authorized!"
+                                                if(sessionID.id != "Authorized") {
+                                                    protocol.responseType = ResponseType.FAILED
+                                                    protocol.header.additionalText = "Not Authorized!"
 
-                                            val responseFriend = parseCPOW(protocol).toJsonString()
-                                            session.send(Frame.Text(responseFriend))
-                                        }*/
+                                                    val responseFriend = parseCPOW(protocol).toJsonString()
+                                                    session.send(Frame.Text(responseFriend))
+                                                }*/
 
                                         val contact = protocol.header.additionalText
                                         val alreadyAdded = dbAddContact(protocol.user.username, contact)
@@ -284,13 +292,13 @@ fun Application.module() {
                                 ActionType.USER_DELETE_FRIEND -> {
                                     async {
                                         /*
-                                        if(sessionID.id != "Authorized") {
-                                            protocol.responseType = ResponseType.FAILED
-                                            protocol.header.additionalText = "Not Authorized!"
+                                                if(sessionID.id != "Authorized") {
+                                                    protocol.responseType = ResponseType.FAILED
+                                                    protocol.header.additionalText = "Not Authorized!"
 
-                                            val responseFriend = parseCPOW(protocol).toJsonString()
-                                            session.send(Frame.Text(responseFriend))
-                                        }*/
+                                                    val responseFriend = parseCPOW(protocol).toJsonString()
+                                                    session.send(Frame.Text(responseFriend))
+                                                }*/
 
                                         protocol.responseType = ResponseType.FAILED
                                         protocol.header.additionalText = "This does not exist yet."
@@ -303,14 +311,14 @@ fun Application.module() {
                                 ActionType.USER_CREATE_CHAT -> {
                                     async {
                                         /*
-                                        mainLogger.trace { "sessionID: ${sessionID.id}" }
-                                        if(sessionID.id != "Authorized") {
-                                            protocol.responseType = ResponseType.FAILED
-                                            protocol.header.additionalText = "Not Authorized!"
+                                                mainLogger.trace { "sessionID: ${sessionID.id}" }
+                                                if(sessionID.id != "Authorized") {
+                                                    protocol.responseType = ResponseType.FAILED
+                                                    protocol.header.additionalText = "Not Authorized!"
 
-                                            val responseFriend = parseCPOW(protocol).toJsonString()
-                                            session.send(Frame.Text(responseFriend))
-                                        }*/
+                                                    val responseFriend = parseCPOW(protocol).toJsonString()
+                                                    session.send(Frame.Text(responseFriend))
+                                                }*/
 
                                         val participant = protocol.participant.username
 
@@ -328,7 +336,9 @@ fun Application.module() {
                                                 chat.members.forEach{
                                                     mainLogger.trace { "   -- Members: ${it.username}" }
 
-                                                    // INFO We only need to find the partner, the user itself will always be there.
+                                                    // INFO
+                                                    // We only need to find the partner,
+                                                    // the user itself will always be there.
                                                     if(it.username == userParticipantObject.username) {
                                                         chatExists = true
                                                         chatID = chat.chatID
@@ -351,7 +361,9 @@ fun Application.module() {
 
                                                 // Set information in protocol
                                                 protocol.responseType = ResponseType.NONE
-                                                protocol.header.additionalText = "[chatty-service]: chat ${chat.chatID} with $participant was created!"
+                                                protocol.header.additionalText =
+                                                        "[chatty-service]: " +
+                                                        "chat ${chat.chatID} with $participant was created!"
 
                                                 // INFO add chat locally ...
                                                 protocol.chats.add(chat)
@@ -370,15 +382,19 @@ fun Application.module() {
 
                                                 // Set information in protocol
                                                 protocol.responseType = ResponseType.NONE
-                                                protocol.header.additionalText = "[chatty-service]: chat $chatID already exists!"
+                                                protocol.header.additionalText =
+                                                        "[chatty-service]: chat $chatID already exists!"
 
                                                 val responseOpenChat = parseCPOW(protocol)
                                                 session.send(Frame.Text(responseOpenChat))
                                             }
                                         } else {
-                                            mainLogger.info { "$participant does not exist. Chat could not being created." }
+                                            mainLogger.info {
+                                                "$participant does not exist. Chat could not being created."
+                                            }
                                             protocol.responseType = ResponseType.FAILED
-                                            protocol.header.additionalText = "[chatty-service]: $participant does not exist!"
+                                            protocol.header.additionalText =
+                                                    "[chatty-service]: $participant does not exist!"
 
                                             val responseOpenChat = parseCPOW(protocol)
                                             session.send(Frame.Text(responseOpenChat))
@@ -404,7 +420,7 @@ fun Application.module() {
                             mainLogger.error { e.printStackTrace() }
                         }
                     }
-                })
+                }
             } finally {
                 if (globalUser.isEmpty()) {
                     mainLogger.info { "[chatty-service]: $id disconnected" }
