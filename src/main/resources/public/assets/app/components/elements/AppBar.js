@@ -25,6 +25,10 @@ import {
 import { withStyles } from "material-ui/styles";
 
 const styles = theme => ({
+    appBarTitle: {
+        float: 'right',
+        margin: 'auto'
+    },
     rightIcon: {
         marginLeft: theme.spacing.unit,
     },
@@ -36,7 +40,6 @@ const styles = theme => ({
     },
     appBar: {
         position: 'absolute',
-        paddingLeft: '12%'
     },
     header: {
         padding: theme.spacing.unit * 2,
@@ -55,7 +58,7 @@ const styles = theme => ({
         }
     },
     messages: {
-        height: '100%',
+        height: '70%',
         padding: theme.spacing.unit * 2,
         marginBottom: theme.spacing.unit * 3
     },
@@ -90,7 +93,7 @@ function ChattyAppBar(props) {
             <div className={classes.appFrame}>
                 <AppBar className={classes.appBar}>
                     <Toolbar>
-                        <Typography type={'display1'} color={'inherit'}>
+                        <Typography type={'display1'} color={'inherit'} className={classes.appBarTitle}>
                             Chatty Webclient
                         </Typography>
                     </Toolbar>

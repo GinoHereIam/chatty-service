@@ -16,7 +16,7 @@ module.exports = {
         contentBase: './dist',
         inline: true,
         port: 8081,
-        host: 'localhost'
+        host: '0.0.0.0'
     },
     /*externals: {
         "react": "React",
