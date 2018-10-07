@@ -47,7 +47,7 @@ const styles = theme => ({
     },
     content: {
         position: 'absolute',
-        width: '30%',
+        width: '60%',
         maxHeight: '60%',
         padding: theme.spacing.unit * 5,
         marginLeft: '20%',
@@ -189,17 +189,18 @@ function ChattyAppBar(props) {
                 {props.clickedChat ? <main className={classes.content}>
                     {
                         props.context.map(context => (
-                            <Paper elevation={4} square={false} className={classes.header}>
+                            <Paper elevation={4} square={true} className={classes.header}>
                                 <Typography variant={'title'}>Chat with {context.participant}</Typography>
                             </Paper>
                         ))
                     }
-                    <Paper elevation={4} square={false} className={classes.messages}>
+                    <Paper elevation={4} square={true} className={classes.messages}>
                     {/* We can use subheading later for text messages */}
                         {/* <Typography variant={'subheading'}>[This is a message container]</Typography> */}
                     </Paper>
                     <TextField
                         multiline={true} fullWidth={true} rows={3}
+                        autoFocus={true}
                         InputProps={{
                             disableUnderline: true,
                             classes: {
