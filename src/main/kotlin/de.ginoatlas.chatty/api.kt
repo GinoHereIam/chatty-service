@@ -1,12 +1,8 @@
 package de.ginoatlas.chatty
 
 // For JSON
-import com.beust.klaxon.JsonArray
-import com.beust.klaxon.json
 import com.google.gson.GsonBuilder
 import mu.KotlinLogging
-import org.joda.time.DateTime
-import java.awt.image.BufferedImage
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -25,10 +21,10 @@ import kotlin.collections.ArrayList
 
 
 // Global constants
-val user_minimumLength = 4
-val user_maxLength = 15
-val message_content_maxLength = 1024
-val password_hash_length = 512
+const val user_minimumLength = 4
+const val user_maxLength = 15
+const val message_content_maxLength = 1024
+const val password_hash_length = 512
 
 private val apiLogger = KotlinLogging.logger {}
 
@@ -45,23 +41,12 @@ class User {
 
     // INFO Unique user name
     var username: String = ""
-        get
-        set
-
     // INFO Display name
     var name: String = ""
-        get
-        set
-
     // INFO Credential token
     lateinit var token: UUID
-        get
-        set
-
     // INFO the picture data is being hold in a byte array
     var photo: ByteArray? = null
-        get
-        set
 }
 
 data class Password(
@@ -126,12 +111,11 @@ data class Version(
         val service: String = "Alpha",
         val license: String = "MIT License",
         val homepage: String = "https://gitbucket.gino-atlas.de/Chatty/chatty-service",
-        val thirdParties: String = "ReactJS, Material-Ui & Google material icons"
+        val thirdParties: String = "ReactJS & Material-Ui & Google material icons & with ♥ Kotlin/Ktor."
 )
 
 // INFO wrap up all data container
 class CPoW {
-
     lateinit var actionType: ActionType
     lateinit var responseType: ResponseType
     lateinit var user: User
@@ -148,10 +132,10 @@ class CPoW {
     lateinit var version: Version
 }
 
-suspend fun parseCPOW(protocol: CPoW): String {
+fun parseCPOW(protocol: CPoW): String {
     val gson = GsonBuilder().create()
     val json = gson.toJson(protocol)
 
-    apiLogger.debug { "GSON JSON: $json" }
+    apiLogger.trace { "GSON JSON: $json" }
     return json
 }

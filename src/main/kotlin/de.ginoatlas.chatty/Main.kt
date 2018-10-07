@@ -65,7 +65,7 @@ fun Application.module() {
         val users: MutableList<User> = mutableListOf()
         // INFO All chats which have been created
         // TODO Think about if we need this leak
-        //val globalChats: MutableList<Chat> = mutableListOf()
+        val globalChats: MutableList<Chat> = mutableListOf()
 
         // INFO Database setup
         initDB()
@@ -259,15 +259,6 @@ fun Application.module() {
                                 ActionType.USER_ADD_FRIEND -> {
                                     // TODO create user add process
                                     async {
-                                        /*
-                                                if(sessionID.id != "Authorized") {
-                                                    protocol.responseType = ResponseType.FAILED
-                                                    protocol.header.additionalText = "Not Authorized!"
-
-                                                    val responseFriend = parseCPOW(protocol).toJsonString()
-                                                    session.send(Frame.Text(responseFriend))
-                                                }*/
-
                                         val contact = protocol.header.additionalText
                                         val alreadyAdded = dbAddContact(protocol.user.username, contact)
 
@@ -276,12 +267,12 @@ fun Application.module() {
 
                                         if (alreadyAdded) {
                                             protocol.responseType = ResponseType.FAILED
-                                            val message = "[chatty-service]: is $contact already in your friends list"
-                                            protocol.header.additionalText = message
+                                            val responseMessage = "[chatty-service]: is $contact already in your friends list"
+                                            protocol.header.additionalText = responseMessage
                                         } else {
                                             protocol.responseType = ResponseType.SUCCESS
-                                            val message = "[chatty-service]: $contact is added to your friends list"
-                                            protocol.header.additionalText = message
+                                            val responseMessage = "[chatty-service]: $contact is added to your friends list"
+                                            protocol.header.additionalText = responseMessage
                                         }
 
                                         val response = parseCPOW(protocol)
@@ -308,18 +299,10 @@ fun Application.module() {
                                     }
                                 }
 
+                                // TODO ActionType.USER_REQUEST_CHAT
+
                                 ActionType.USER_CREATE_CHAT -> {
                                     async {
-                                        /*
-                                                mainLogger.trace { "sessionID: ${sessionID.id}" }
-                                                if(sessionID.id != "Authorized") {
-                                                    protocol.responseType = ResponseType.FAILED
-                                                    protocol.header.additionalText = "Not Authorized!"
-
-                                                    val responseFriend = parseCPOW(protocol).toJsonString()
-                                                    session.send(Frame.Text(responseFriend))
-                                                }*/
-
                                         val participant = protocol.participant.username
 
                                         // INFO Find partner in the database and add it
@@ -330,60 +313,67 @@ fun Application.module() {
                                             var chatID = UUID.fromString("00000000-0000-0000-0000-000000000000")
 
                                             // INFO first we figure out if a chat already exists
-                                            mainLogger.trace { "Chat size: ${protocol.chats.size}" }
-                                            for(chat in protocol.chats) {
-                                                mainLogger.trace { "ChatID: ${chat.chatID}" }
-                                                chat.members.forEach{
-                                                    mainLogger.trace { "   -- Members: ${it.username}" }
-
-                                                    // INFO
-                                                    // We only need to find the partner,
-                                                    // the user itself will always be there.
-                                                    if(it.username == userParticipantObject.username) {
-                                                        chatExists = true
-                                                        chatID = chat.chatID
-                                                    }
-                                                }
+                                            mainLogger.trace {
+                                                "Chat size: ${globalChats.size}\n" +
+                                                        "Participant: ${protocol.participant.username}\n" +
+                                                        "User: ${protocol.user.username}"
                                             }
 
-                                            // ... if chat does not exist we will create a new one
+                                            for(chat in globalChats) {
+                                                mainLogger.trace { "ChatID: ${chat.chatID}" }
 
-                                            if(!chatExists){
+                                                var foundUserInChat = false
+                                                var foundParticipantInChat = false
 
+                                                for(member in chat.members) {
+                                                    if(member.username == protocol.user.username) {
+                                                        foundUserInChat = true
+                                                    }
+                                                    if(member.username == protocol.participant.username) {
+                                                        foundParticipantInChat = true
+                                                    }
+                                                }
+                                                chatExists = foundUserInChat && foundParticipantInChat
+                                                chatID = chat.chatID
+                                            }
+
+                                            // Check if a chat was found
+                                            if(chatExists) {
+                                                mainLogger.info { "Chat exists: $chatID" }
+                                                // Set information in protocol
+                                                // Set NONE to hide
+                                                protocol.responseType = ResponseType.NONE
+                                                protocol.header.additionalText =
+                                                        "[chatty-service]: chat $chatID already exists!"
+
+                                                val responseOpenChat = parseCPOW(protocol)
+                                                session.send(Frame.Text(responseOpenChat))
+                                            }else {
+                                                // Chat does not exist yet.
                                                 // INFO Create a chat if the partner(s) is online
-                                                val chat = ChatImpl()
+                                                val newChat = ChatImpl()
                                                 // INFO Add the user itself to the chat
-                                                chat.addParticipant(protocol.user)
+                                                newChat.addParticipant(protocol.user)
                                                 // INFO Add participant
-                                                chat.addParticipant(userParticipantObject)
+                                                newChat.addParticipant(protocol.participant)
 
-                                                mainLogger.info { "Chat was created with ${chat.chatID}" }
+                                                mainLogger.info { "Chat was created with ${newChat.chatID}" }
 
                                                 // Set information in protocol
+                                                // Set NONE to hide
                                                 protocol.responseType = ResponseType.NONE
                                                 protocol.header.additionalText =
                                                         "[chatty-service]: " +
-                                                        "chat ${chat.chatID} with $participant was created!"
+                                                        "chat ${newChat.chatID} with $participant was created!"
 
                                                 // INFO add chat locally ...
-                                                protocol.chats.add(chat)
+                                                //protocol.chats.add(newChat)
                                                 // INFO ... and globally
-                                                // globalChats.add(chat)
+                                                globalChats.add(newChat)
 
                                                 protocol.chats.forEach{
                                                     mainLogger.trace { "${it.chatID}" }
                                                 }
-
-                                                val responseOpenChat = parseCPOW(protocol)
-                                                session.send(Frame.Text(responseOpenChat))
-                                            }else{
-                                                // INFO Chat already exists
-                                                mainLogger.trace { "Chat already exists." }
-
-                                                // Set information in protocol
-                                                protocol.responseType = ResponseType.NONE
-                                                protocol.header.additionalText =
-                                                        "[chatty-service]: chat $chatID already exists!"
 
                                                 val responseOpenChat = parseCPOW(protocol)
                                                 session.send(Frame.Text(responseOpenChat))
