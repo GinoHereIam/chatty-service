@@ -1,21 +1,22 @@
 // Styles
-import "./style.css";
-import 'typeface-roboto'
+import "./style.less";
+// import 'typeface-roboto';
 // Material-ui
-import { blueGrey, red, teal } from 'material-ui/colors'
+import { blueGrey, red, teal } from '@material-ui/core/colors';
 
 import {
     FormControlLabel, AppBar, Drawer, Input,
     Card, CardActions, CardContent, CardHeader, CardMedia, Button,
     ButtonBase, MuiThemeProvider, withTheme, Paper, Switch, TextField, Typography, Dialog, DialogTitle,
-    DialogContent, DialogContentText, DialogActions, List, ListItem, ListItemAvatar, Avatar, ListItemText
-} from 'material-ui';
-import { createMuiTheme } from 'material-ui';
-import Slide from "material-ui/transitions/Slide";
+    DialogContent, DialogContentText, DialogActions, List, ListItem, ListItemAvatar, Avatar, ListItemText, CssBaseline
+} from '@material-ui/core';
+import { createMuiTheme } from '@material-ui/core';
+import Slide from "@material-ui/core";
 
 // React
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+
 // Websocket
 import ReconnectingWebSocket from "./vendor/reconnecting-websocket.min";
 
@@ -37,6 +38,10 @@ history.pushState(null, null, document.URL);
 window.addEventListener('popstate', function () {
     history.pushState(null, null, document.URL);
 });
+
+window.oncontextmenu = function() {
+    return false;
+}
 
 // INFO warn user before reloading
 /*
@@ -122,16 +127,16 @@ class Chatty extends React.Component {
         });
     }
 
-    logout = event => {
+    logout(event) {
 
         const cpow = this.state.CPOW;
         cpow.actionType = 'USER_DISCONNECT';
 
         let json = JSON.stringify(cpow);
         this.state.socket.send(json);
-    };
+    }
 
-    openChat = participant => event => {
+    openChat( participant, event) {
         this.setState({
             clickedChat: true,
             context: [{
@@ -147,21 +152,21 @@ class Chatty extends React.Component {
 
         let json = JSON.stringify(cpow);
         this.state.socket.send(json)
-    };
+    }
 
-    sendMessage = msg => event => {
+    sendMessage(msg, event) {
         // TODO
-    };
+    }
 
-    handleSnackbarClose = () => {
+    handleSnackbarClose() {
         this.setState({ notify: false });
-    };
+    }
 
-    handleContactsSubList = () => {
+    handleContactsSubList() {
         this.setState({ openContacts: !this.state.openContacts });
-    };
+    }
 
-    userLookup = event => {
+    userLookup(event) {
         let value = event.target.value;
         //let length = value.length;
 
@@ -172,9 +177,9 @@ class Chatty extends React.Component {
 
         let json = JSON.stringify(cpow);
         this.state.socket.send(json);
-    };
+    }
 
-    submitUser = username => event => {
+    submitUser(username, event) {
         if(!this.state.contacts.find((contact) => { return contact === username})) {
             // INFO add contact to local friend list
             this.setState({contacts: this.state.contacts.concat([username])});
@@ -187,11 +192,11 @@ class Chatty extends React.Component {
             const json = JSON.stringify(cpow);
             this.state.socket.send(json);
         }
-    };
+    }
 
-    handleCloseUserSearch = event => {
+    handleCloseUserSearch(event) {
         this.setState({ showUserSearch: false })
-    };
+    }
 
     render() {
         // Set theme
@@ -229,16 +234,17 @@ class Chatty extends React.Component {
                 // Remove any session cookies!
                 sessionStorage.clear();
 
-                ReactDOM.render(
-                    <InitApp dnmode={self.state.dnmode}
-                             socket={null}
-                             servicePath={''}
-                             buttonTestDisabled={true}
-                             buttonEnterDisabled={true}
-                             serviceOutput={self.state.serviceOutput}
-                             notify={self.state.notify}/>,
-                    document.getElementById('app')
-                )
+                ReactDOM.hydrate(
+                    <InitApp
+                        dnmode={self.state.dnmode}
+                        socket={null}
+                        servicePath={''}
+                        buttonTestDisabled={true}
+                        buttonEnterDisabled={true}
+                        serviceOutput={self.state.serviceOutput}
+                        notify={self.state.notify}/>,
+                        document.getElementById('app')
+                );
             }
 
             if(CPOW.responseType === "SUCCESS" && CPOW.actionType === "USER_ADD_FRIEND" ) {
@@ -293,19 +299,20 @@ class Chatty extends React.Component {
 
         return(
             <MuiThemeProvider theme={theme}>
+                <CssBaseline/>
                 <span>
                     <ChattyAppBar
-                        openSubContacts={this.handleContactsSubList}
+                        openSubContacts={this.handleContactsSubList.bind(this)}
                         isContactsOpen={this.state.openContacts}
                         isConnected={this.state.isConnected}
-                        logout={this.logout}
+                        logout={this.logout.bind(this)}
                         showAbout={() => this.setState({ showAbout: true })}
                         switchStyleOnClick={(event, checked) => {checked ?
                             this.setState({dnmode: 'dark'}) : this.setState({dnmode: 'light'})
                         }}
                         switchStyleChecked={this.state.dnmode === 'dark'}
                         openUserSearch={() => this.setState({ showUserSearch: true })}
-                        openChat={this.openChat}
+                        openChat={this.openChat.bind(this)}
                         username={this.state.username}
                         contacts={this.state.contacts}
                         clickedChat={this.state.clickedChat}
@@ -313,8 +320,8 @@ class Chatty extends React.Component {
                     />
                     <Dialog
                         open={this.state.showAbout}
-                        onRequestClose={() => this.setState({ showAbout: false })}
-                        transition={Slide}>
+                        onClose={() => this.setState({ showAbout: false })}
+                        TransitionComponent={Slide}>
                         <DialogTitle>Chatty information</DialogTitle>
                         <DialogContent>
                             <DialogContentText>
@@ -329,14 +336,14 @@ class Chatty extends React.Component {
                     </Dialog>
                     <Usersearch
                         showUserSearch={this.state.showUserSearch}
-                        onRequestClose={this.handleCloseUserSearch}
-                        userLookup={this.userLookup}
+                        onRequestClose={this.handleCloseUserSearch.bind(this)}
+                        userLookup={this.userLookup.bind(this)}
                         foundUser={this.state.foundUser}
-                        submitUser={this.submitUser}
+                        submitUser={this.submitUser.bind(this)}
                     />
                     <ChattySnackbar
+                        onRequestClose={this.handleSnackbarClose.bind(this)}
                         open={this.state.notify}
-                        onRequestClose={this.handleSnackbarClose}
                         message={this.state.serviceOutput}
                     />
                 </span>
@@ -433,7 +440,7 @@ class Login extends React.Component {
                 sessionStorage.setItem("state", JSON.stringify(state));
 
                 // Render chat
-                ReactDOM.render(
+                ReactDOM.hydrate(
                     <Chatty state={self.state} />,
                     document.getElementById('app')
                 );
@@ -447,7 +454,7 @@ class Login extends React.Component {
                     onChangeUsername={this.onChange}
                     onChangePassword={this.onChange}/>
                 <ChattySnackbar
-                    onRequestClose={this.handleSnackbarClose}
+                    onRequestClose={this.handleSnackbarClose.bind(this)}
                     open={this.state.notify}
                     message={this.state.serviceOutput}
                 />
@@ -556,7 +563,7 @@ class Register extends React.Component {
 
             this.setState({
                 notify: true,
-                serviceMessage: "Good password! " + String(good - length) + "chars left for perfect one"
+                serviceMessage: "Good password! " + String(good - length) + " chars left for perfect one"
             });
 
             if(this.state.username.length === usermin && this.state.name.length === usermin) {
@@ -670,7 +677,7 @@ class Register extends React.Component {
                     passwordInputValue={this.state.password}
                 />
                 <ChattySnackbar
-                    onRequestClose={this.handleSnackbarClose}
+                    onRequestClose={this.handleSnackbarClose.bind(this)}
                     open={this.state.notify}
                     message={this.state.serviceMessage}
                 />
@@ -739,6 +746,7 @@ export class Auth extends React.Component {
 
         return (
             <MuiThemeProvider theme={theme}>
+                <CssBaseline/>
                 <span>
                     <Header/>
                     <div>
@@ -776,7 +784,7 @@ export class InitApp extends React.Component {
             this.state.socket.close();
         }
 
-        ReactDOM.render(
+        ReactDOM.hydrate(
             <Auth address={this.state.servicePath} dnmode={this.state.dnmode}/>,
             document.getElementById('app')
         );
@@ -860,6 +868,7 @@ export class InitApp extends React.Component {
 
         return (
             <MuiThemeProvider theme={theme}>
+                <CssBaseline/>
                 <span>
                     <Header/>
                     <Service
@@ -870,7 +879,7 @@ export class InitApp extends React.Component {
                         addServiceAddress={this.addServiceAddress}
                     />
                     <ChattySnackbar
-                        onRequestClose={this.handleSnackbarClose}
+                        onRequestClose={this.handleSnackbarClose.bind(this)}
                         open={this.state.notify}
                         message={this.state.serviceOutput}
                     />
@@ -884,12 +893,12 @@ if(sessionStorage.getItem("isAuthenticated")) {
     let state = JSON.parse(sessionStorage.getItem("state"));
 
     // Render chat from web session
-    ReactDOM.render(
+    ReactDOM.hydrate(
         <Chatty state={state} />,
         document.getElementById('app')
     );
 }else {
-    ReactDOM.render(
+    ReactDOM.hydrate(
         <InitApp
             socket={null}
             servicePath=''

@@ -1,8 +1,8 @@
 // Login
-import {Paper, FormControlLabel, TextField, Button, FormLabel} from "material-ui";
+import {Paper, FormControlLabel, TextField, Button, FormLabel} from "@material-ui/core";
 import React from 'react';
 import PropTypes from 'prop-types';
-import { withStyles } from 'material-ui/styles';
+import { withStyles } from '@material-ui/core';
 
 const styles = theme => ({
     root: theme.mixins.gutters({
@@ -33,7 +33,7 @@ export function LoginElements(props) {
                     <TextField className="password"
                                onChange={props.onChangePassword('password')} label='Password' type="password"/>
                 } required/>
-                <Button color='primary' type='submit' raised>Login</Button>
+                <Button color='primary' type='submit' raised="true">Login</Button>
             </form>
         </Paper>
     )

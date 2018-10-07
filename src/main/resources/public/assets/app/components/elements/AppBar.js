@@ -1,28 +1,28 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 // Import Icons
-import Style from 'material-ui-icons/Style';
-import Contacts from 'material-ui-icons/Contacts'
-import PersonIcon  from 'material-ui-icons/Person'
-import StarBorder from 'material-ui-icons/StarBorder'
-import ExpandLess from 'material-ui-icons/ExpandLess'
-import ExpandMore from 'material-ui-icons/ExpandMore'
-import ChatBubble from 'material-ui-icons/ChatBubble'
-import Settings from 'material-ui-icons/Settings'
-import Search from 'material-ui-icons/Search'
-import ExitToApp from 'material-ui-icons/ExitToApp'
-import Info from 'material-ui-icons/Info'
-import Warning from 'material-ui-icons/Warning'
-import Send from 'material-ui-icons/Send';
+import Style from '@material-ui/icons/Style';
+import Contacts from '@material-ui/icons/Contacts'
+import PersonIcon  from '@material-ui/icons/Person'
+import StarBorder from '@material-ui/icons/StarBorder'
+import ExpandLess from '@material-ui/icons/ExpandLess'
+import ExpandMore from '@material-ui/icons/ExpandMore'
+import ChatBubble from '@material-ui/icons/ChatBubble'
+import Settings from '@material-ui/icons/Settings'
+import Search from '@material-ui/icons/Search'
+import ExitToApp from '@material-ui/icons/ExitToApp'
+import Info from '@material-ui/icons/Info'
+import Warning from '@material-ui/icons/Warning'
+import Send from '@material-ui/icons/Send';
 
-import Collapse from 'material-ui/transitions/Collapse';
+import Collapse from '@material-ui/core/Collapse';
 import {
     AppBar, Toolbar,
     Typography, List, ListItemText, ListItemIcon, ListItem, Drawer, Switch,
     Divider, ListItemSecondaryAction, ListItemAvatar, Avatar, Paper, Input, TextField, Button
-} from "material-ui";
+} from "@material-ui/core";
 
-import { withStyles } from "material-ui/styles";
+import { withStyles } from "@material-ui/core/styles";
 
 const styles = theme => ({
     appBarTitle: {
@@ -83,6 +83,10 @@ const styles = theme => ({
     textFieldFormLabel: {
         fontSize: 18,
     },
+    backgroundPaper: {
+        height: "100%",
+        width: "100%"
+    }
 });
 
 function ChattyAppBar(props) {
@@ -91,14 +95,15 @@ function ChattyAppBar(props) {
     return (
         <div className={classes.root}>
             <div className={classes.appFrame}>
-                <AppBar className={classes.appBar}>
+            {/* GinoHereIam 20180903: probably not necessary anymore as it doesn't match to whole design. */}
+                {/* <AppBar className={classes.appBar}>
                     <Toolbar>
-                        <Typography type={'display1'} color={'inherit'} className={classes.appBarTitle}>
+                        <Typography variant={'display1'} color={'inherit'} className={classes.appBarTitle}>
                             Chatty Webclient
                         </Typography>
                     </Toolbar>
-                </AppBar>
-                <Drawer type="permanent"
+                </AppBar> */}
+                <Drawer variant="permanent"
                         classes={{
                             paper: classes.drawerPaper,
                         }}>
@@ -131,19 +136,21 @@ function ChattyAppBar(props) {
                             <ListItemText inset primary="Contacts" />
                             {props.isContactsOpen ? <ExpandLess /> : <ExpandMore />}
                         </ListItem>
-                        <Collapse in={ props.isContactsOpen } transitionDuration="auto" unmountOnExit>
-                            {
-                                props.contacts.map(username => (
-                                    <ListItem button onClick={props.openChat(username)}>
-                                        <ListItemAvatar>
-                                            <Avatar>
-                                                <PersonIcon/>
-                                            </Avatar>
-                                        </ListItemAvatar>
-                                        <ListItemText primary={username}/>
-                                    </ListItem>
-                                ))
-                            }
+                        <Collapse in={ props.isContactsOpen } timeout="auto" unmountOnExit>
+                            <List component="nav">
+                                {
+                                    props.contacts.map(username => (
+                                        <ListItem component="div" button onClick={() => props.openChat(username)} key={username}>
+                                            <ListItemAvatar>
+                                                <Avatar>
+                                                    <PersonIcon/>
+                                                </Avatar>
+                                            </ListItemAvatar>
+                                            <ListItemText primary={username}/>
+                                        </ListItem>
+                                    ))
+                                }
+                            </List>
                         </Collapse>
                         <Divider/>
                         <ListItem>
@@ -173,7 +180,7 @@ function ChattyAppBar(props) {
                         <Divider/>
                         <ListItem>
                             <ListItemIcon>
-                                {props.isConnected ? <ChatBubble color="green"/>  : <Warning color="red"/> }
+                                {props.isConnected ? <ChatBubble/>  : <Warning/> }
                             </ListItemIcon>
                             <ListItemText primary={props.isConnected ? 'Chatty available'  : 'You are offline!'}/>
                         </ListItem>
@@ -183,12 +190,13 @@ function ChattyAppBar(props) {
                     {
                         props.context.map(context => (
                             <Paper elevation={4} square={false} className={classes.header}>
-                                <Typography type={'title'}>Chat with {context.participant}</Typography>
+                                <Typography variant={'title'}>Chat with {context.participant}</Typography>
                             </Paper>
                         ))
                     }
                     <Paper elevation={4} square={false} className={classes.messages}>
-                        <Typography type={'subheading'}>[This is a message container]</Typography>
+                    {/* We can use subheading later for text messages */}
+                        {/* <Typography variant={'subheading'}>[This is a message container]</Typography> */}
                     </Paper>
                     <TextField
                         multiline={true} fullWidth={true} rows={3}
@@ -204,9 +212,8 @@ function ChattyAppBar(props) {
                             className: classes.textFieldFormLabel,
                         }}
                     />
-                    <Button raised color={'primary'}>
-                        Send
-                        <Send className={classes.rightIcon}/>
+                    <Button raised="true" color={'primary'} variant="contained">
+                        Send <Send className={classes.rightIcon}/>
                     </Button>
                 </main> : <main/>}
             </div>

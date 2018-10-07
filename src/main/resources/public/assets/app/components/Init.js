@@ -1,8 +1,8 @@
 
-import {Button, Paper, TextField} from "material-ui";
+import {Button, Paper, TextField} from "@material-ui/core";
 import React from 'react';
 import PropTypes from 'prop-types';
-import { withStyles } from 'material-ui/styles';
+import { withStyles } from '@material-ui/core';
 
 const styles = theme => ({
     root: theme.mixins.gutters({
@@ -29,13 +29,13 @@ function Service(props) {
                 </span>
                 <span style={elementStyle}>
                     <Button disabled={props.buttonTestDisabled}
-                            onClick={props.testConnection} raised>
+                            onClick={props.testConnection} raised="true">
                         Verify
                     </Button>
                 </span>
                 <span style={elementStyle}>
                     <Button color='primary' disabled={props.buttonEnterDisabled}
-                            onClick={props.addServiceAddress} raised>
+                            onClick={props.addServiceAddress} raised="true">
                         Enter
                     </Button>
                 </span>

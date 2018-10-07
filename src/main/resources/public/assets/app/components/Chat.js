@@ -1,8 +1,8 @@
 
-import {Divider, List, Paper, ListItem, ListItemText} from "material-ui";
+import {Divider, List, Paper, ListItem, ListItemText} from "@material-ui/core";
 import React from 'react';
 import PropTypes from 'prop-types';
-import { withStyles } from 'material-ui/styles';
+import { withStyles } from '@material-ui/core';
 import ChattyAppBar from './elements/AppBar'
 
 export function Chat(props) {

@@ -1,8 +1,8 @@
 
-import {Button, Paper, TextField, FormControlLabel, FormLabel} from "material-ui";
+import {Button, Paper, TextField, FormControlLabel, FormLabel} from "@material-ui/core";
 import React from 'react';
 import PropTypes from 'prop-types';
-import { withStyles } from 'material-ui/styles';
+import { withStyles } from '@material-ui/core';
 
 const styles = theme => ({
     root: theme.mixins.gutters({
@@ -45,7 +45,7 @@ function RegisterElements(props) {
                 <Button color="primary"
                         disabled={props.buttonRegisterDisabled}
                         type="submit"
-                        className="submitBtn" raised>Register
+                        className="submitBtn" raised="true">Register
                 </Button>
             </form>
         </Paper>

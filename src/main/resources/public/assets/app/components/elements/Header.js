@@ -1,6 +1,6 @@
 
-import { Paper, Typography} from "material-ui";
-import { withStyles } from "material-ui/styles"
+import { Paper, Typography} from "@material-ui/core";
+import { withStyles } from "@material-ui/core"
 import React from 'react';
 import PropTypes from 'prop-types';
 

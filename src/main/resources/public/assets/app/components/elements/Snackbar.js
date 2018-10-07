@@ -1,8 +1,7 @@
-import Snackbar from 'material-ui/Snackbar';
-import * as React from 'react';
-import { render } from 'react-dom';
-import { withStyles } from 'material-ui/styles';
-import Fade from 'material-ui/transitions/Fade';
+import Snackbar from '@material-ui/core/Snackbar';
+import React from 'react';
+import { withStyles } from '@material-ui/core/styles';
+import Fade from '@material-ui/core/Fade';
 import PropTypes from 'prop-types';
 
 
@@ -16,17 +15,19 @@ const styles = theme => ({
 });
 
 function ChattySnackbar(props){
+    const classes = props.classes;
 
     return(
         <Snackbar
+            className={classes.root}
             anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             open={props.open}
-            onRequestClose={props.onRequestClose}
-            transition={Fade}
-            SnackbarContentProps={{
+            onClose={props.onRequestClose}
+            TransitionComponent={Fade}
+            ContentProps={{
                 'aria-describedby': 'service-message',
             }}
-            autoHideDuration={3000}
+            // autoHideDuration={3000}
             message={<span id='service-message'>{props.message}</span>}
         />
     )
@@ -34,6 +35,9 @@ function ChattySnackbar(props){
 
 ChattySnackbar.propTyes = {
     classes: PropTypes.object.isRequired,
+    onRequestClose: PropTypes.func.isRequired,
+    open: PropTypes.bool.isRequired,
+    message: PropTypes.string.isRequired
 };
 
 export default withStyles(styles)(ChattySnackbar);

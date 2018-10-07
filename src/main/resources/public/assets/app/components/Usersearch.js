@@ -1,19 +1,20 @@
 
 import {
     Button, Dialog, DialogTitle, Input, ListItemText, List, ListItem, ListItemAvatar, Avatar,
-    DialogContent, DialogContentText, TextField
-} from "material-ui";
-import PersonIcon  from 'material-ui-icons/Person'
-import Slide from "material-ui/transitions/Slide"
-import { teal, blueGrey, red, blue } from 'material-ui/colors'
+    DialogContent, DialogContentText, TextField, DialogActions
+} from "@material-ui/core";
+import PersonIcon  from '@material-ui/icons/Person'
+import Slide from "@material-ui/core"
+import { teal, blueGrey, red, blue } from '@material-ui/core'
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { withStyles } from 'material-ui/styles';
+import { withStyles } from '@material-ui/core';
 
 const styles = theme => ({
     dialog: {
-        borderRadius: '5%'
+        borderRadius: '5%',
+        innerHeight: '30%'
     },
     searchInput: {
         textAlign: 'center',
@@ -28,16 +29,19 @@ function Usersearch(props) {
         <Dialog
             className={classes.dialog}
             open={props.showUserSearch}
-            onRequestClose={props.onRequestClose}
-            transition={Slide}>
-            <DialogTitle>User search</DialogTitle>
+            onClose={props.onRequestClose}
+            TransitionComponent={Slide}>
+            <DialogTitle id="form-dialog-title">User search</DialogTitle>
             <DialogContent>
-                <Input placeholder={'Search for your friend!'} onChange={props.userLookup} className={classes.searchInput}/>
                 <DialogContentText>
-                    <List>
+                You can search for friends here!
+                </DialogContentText>
+                <Input placeholder={'Your friends id ...'} onChange={props.userLookup} className={classes.searchInput}/>
+                <DialogContentText>
+                    <List component="nav">
                         {
                             props.foundUser.map(name =>(
-                                <ListItem button onClick={props.submitUser(name)} key={name}>
+                                <ListItem component="div" button onClick={() => props.submitUser(name)} key={name}>
                                     <ListItemAvatar>
                                         <Avatar>
                                             <PersonIcon/>
@@ -49,6 +53,9 @@ function Usersearch(props) {
                         }
                     </List>
                 </DialogContentText>
+                <DialogActions>
+                    <Button onClick={props.onRequestClose} color={'primary'} variant="contained" size="medium">Close</Button>
+                </DialogActions>
             </DialogContent>
         </Dialog>
     )

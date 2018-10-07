@@ -1,70 +1,67 @@
+// webpack v4
 const path = require('path');
-const HtmlWPPlugin = require('html-webpack-plugin');
-const ExtractTextPlugin = require("extract-text-webpack-plugin");
-const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const WebpackMd5Hash = require('webpack-md5-hash');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+const StyleLintPlugin = require('stylelint-webpack-plugin');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = {
+    mode: 'development',
     entry: {
         app: './app/app.js'
     },
     output: {
-        filename: '[name].[hash].js',
-        path: path.resolve(__dirname, 'dist')
+        path: path.resolve(__dirname, 'dist'),
+        filename: '[name].[hash].js'
     },
-    devtool: 'source-map',
+    devtool: 'inline-source-map',
     devServer: {
         contentBase: './dist',
         inline: true,
         port: 8081,
         host: '0.0.0.0'
     },
-    /*externals: {
-        "react": "React",
-        "react-dom": "ReactDOM"
-    },*/
     module: {
-        loaders: [
-            {
-                test: /\.css$/,
-                use: ExtractTextPlugin.extract('css-loader')
-            },
-            {
+        rules: [{
                 test: /\.js$/,
-                loader: 'babel-loader',
                 exclude: /node_modules/,
-                query: {
-                    cacheDirectory: true,
+                use: {
+                    loader: 'babel-loader'
                 }
             },
+            { test: /\.(png|woff|woff2|eot|ttf|svg)$/, loader: 'url-loader?limit=100000' },
             {
-                test: /\.jsx$/, loader: 'babel-loader',
-                exclude: /node_modules/,
-                query: {
-                    cacheDirectory: true,
-                }
-            },
-            {
-                test: /\.(png|svg|jpg|gif)$/,
-                use: [
-                    'file-loader'
+                test: /\.less$/,
+                use: [{
+                        loader: 'style-loader'
+                    },
+                    {
+                        loader: 'css-loader'
+                    },
+                    {
+                        loader: 'less-loader'
+                    }
                 ]
-            },
-            {
-                test: /\.(eot|svg|ttf|woff|woff2)$/,
-                use: 'file-loader?name=fonts/[name].[ext]'
             }
-        ]
+        ],
     },
     plugins: [
-        new HtmlWPPlugin({
+        new CleanWebpackPlugin('dist', {}),
+        // new MiniCssExtractPlugin({
+        //     filename: 'style.[contenthash].css'
+        // }),
+        new HtmlWebpackPlugin({
             title: 'Chatty - self-hosting chat',
-            template: 'template/index.ejs',
+            template: './template/index.ejs',
             inject: 'body'
         }),
-        new ExtractTextPlugin("style.[hash].css"),
-        new webpack.optimize.CommonsChunkPlugin({
-            name: 'main',
-            async: true
-        })
+        new WebpackMd5Hash()
+        // new StyleLintPlugin({
+        //     configFile: './stylelint.config.js',
+        //     files: './src/less/*.less',
+        //     syntax: 'less'
+        // })
     ]
 };
